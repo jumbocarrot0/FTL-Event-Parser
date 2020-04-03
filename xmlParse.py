@@ -127,10 +127,20 @@ def FTLTextListParse():
 tree = ET.parse('text_events.xml')
 root = tree.getroot()
 
+if root.tag != 'FTL':
+	print('ERROR: text_events.xml not encapsulated in FTL tag. This tag is required for this parser to work.')
+	while 0 == 0:
+		input()
+
 text_ids = FTLEventTextParse(root)
 
 tree = ET.parse('events.xml')
 root = tree.getroot()
+
+if root.tag != 'FTL':
+	print('ERROR: text_events.xml not encapsulated in FTL tag. This tag is required for this parser to work.')
+	while 0 == 0:
+		input()
 
 FTLEventParse(root)
 done = False
