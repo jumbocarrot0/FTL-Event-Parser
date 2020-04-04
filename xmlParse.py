@@ -3,7 +3,7 @@ import random as rand
 
 events = {}
 eventNames = []
-namedEvents = []
+callableEvents = []
 xmlParseReq = {}
 
 def FTLEventTextParse(data):
@@ -20,7 +20,7 @@ def FTLEventParse(data):
 		if child.tag == 'eventList':
 			if 'name' in child.attrib and data == root:
 				eventNames.append(child.attrib['name'])
-				namedEvents.append(child.attrib['name'])
+				callableEvents.append(child.attrib['name'])
 				xmlParseReq[child] = child.attrib['name']
 				events[child.attrib['name']] = {'eventList':[]}
 				for x in range(0, len(child)):
@@ -31,7 +31,7 @@ def FTLEventParse(data):
 			if 'name' in child.attrib and data == root:
 				events[child.attrib['name']] = {}
 				eventNames.append(child.attrib['name'])
-				namedEvents.append(child.attrib['name'])
+				callableEvents.append(child.attrib['name'])
 			elif data == root:
 				break
 			else:
@@ -97,15 +97,13 @@ def FTLEventParse(data):
 						if chochild.tag == 'event':
 							if len(chochild) == 0:
 								if 'load' in chochild.attrib:
-									events[eventNames[-1]]['choice ' + str(choiceNumber)]['event'] = chochild.attrib[
-										'load']
+									events[eventNames[-1]]['choice ' + str(choiceNumber)]['event'] = chochild.attrib['load']
 
 								else:
 									events[eventNames[-1]]['choice ' + str(choiceNumber)]['event'] = -1
 
 							else:
-								events[eventNames[-1]]['choice ' + str(choiceNumber)]['event'] = eventNames[
-																									 -1] + '_c' + str(
+								events[eventNames[-1]]['choice ' + str(choiceNumber)]['event'] = eventNames[-1] + '_c' + str(
 									choiceNumber)
 								events[eventNames[-1] + '_c' + str(choiceNumber)] = {}
 								xmlParseReq[echild] = eventNames[-1] + '_c' + str(choiceNumber)
@@ -128,10 +126,24 @@ def FTLTextListParse():
 						del events[event]['textList']
 						events[event]['text'] = temp_list
 						
+def errorCheck():
 	for event in events:
 		if 'text' in events[event]:
 			if type(events[event]['text']) is not list:
-				print('Error: Unidentified text list called by ' + event)
+				print('Error: Unidentified textList called by ' + event)
+				
+		choiceNumb = 0
+		while 0 == 0:
+			if 'choice ' + str(choiceNumb) in events[event]:
+				choiceNumb += 1
+			else:
+				break
+		
+		for choice in range(0, choiceNumb):
+			if events[event]['choice ' + str(choice)]['event'] != -1:
+				if events[event]['choice ' + str(choice)]['event'] not in eventNames:
+					print('Error: Unidentified eventList called by ' + event)
+				
 
 tree = ET.parse('text_events.xml')
 root = tree.getroot()
@@ -162,6 +174,8 @@ while done is False:
 		done = True
 
 FTLTextListParse()
+
+errorCheck()
 
 command_list = '''
 !eventList - bring up a list of loadable events.
@@ -202,7 +216,7 @@ while 0 == 0:
 		command = input('>>> ')
 
 		if command == '!eventList':
-			for name in namedEvents:
+			for name in callableEvents:
 				print(name)
 
 		if command == '!exit':
@@ -212,7 +226,7 @@ while 0 == 0:
 			print(command_list)
 
 		if command[:5] == '!load':
-			if command[6:] in namedEvents:
+			if command[6:] in callableEvents:
 				eventMode = True
 				loadedEvent = command[6:]
 				loadedEventCmd = loadedEvent
