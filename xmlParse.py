@@ -335,10 +335,11 @@ while 0 == 0:
 		
 		if 'item_modify' in events[loadedEvent]:
 			for item in events[loadedEvent]['item_modify']:
-				if events[loadedEvent]['item_modify']['rand'] < 0:
-					print('You lost ' + str(-1 * events[loadedEvent]['item_modify']['rand']) + ' ' + item + '.\n')
-				elif events[loadedEvent]['item_modify']['rand'] > 0:
-					print('You got ' + str(events[loadedEvent]['item_modify']['rand']) + ' ' + item + '.\n')
+				if item != 'steal':
+					if int(events[loadedEvent]['item_modify'][item]['rand']) < 0:
+						print('You lost ' + str(-1 * events[loadedEvent]['item_modify'][item]['rand']) + ' ' + item + '.\n')
+					elif int(events[loadedEvent]['item_modify'][item]['rand']) > 0:
+						print('You got ' + str(events[loadedEvent]['item_modify'][item]['rand']) + ' ' + item + '.\n')
 		
 		if 'eventList' in events[loadedEvent]:
 			loadedEvent = rand.choice(events[loadedEvent]['eventList'])
