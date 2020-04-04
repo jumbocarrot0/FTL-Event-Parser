@@ -25,10 +25,10 @@ Do not remove the FTL Tag -->
 		<text>Loading Loading Loading</text>
 		<event load="EXAMPLE_EVENT_2"/>
 	</choice>
-	<choice req="human">
-		<text>(Human Crew) This will be blue</text>
+	<choice req="engi" hidden="true">
+		<text>(Engi Crew) This would be blue</text>
 		<event>
-			<item_modify>
+			<item_modify steal="true">
 				<item type="fuel" min="-3" max="-2"/>
 			</item_modify>
 		</event>
@@ -78,7 +78,7 @@ Do not remove the FTL Tag -->
 	<choice>
 		<text>You have no choice in the matter.</text>
 		<event>
-			<item_modify>
+			<item_modify steal="true">
 				<item type="scrap" min="-10" max="-5"/>
 				<item type="missiles" min="2" max="3"/>
 				<item type="drones" min="1" max="3"/>

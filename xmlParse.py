@@ -5,6 +5,43 @@ events = {}
 eventNames = []
 callableEvents = []
 xmlParseReq = {}
+equipment = {'crew' : [], 'systems' : [], 'weaponList' : [], 'droneList' : [], 'missiles' : 0, 'drones' : 0, 'fuel' : 0, 'scrap' : 0, }
+
+def FTLEquipmentParse(data):
+	global equipment
+	for blueprint in data:
+		for child in blueprint:
+			if child.tag == 'systemList':
+				equipment['systems'] = {}
+				for schild in child:
+					if schild.attrib['start'] == 'true':
+						equipment['systems'][schild.tag] = int(schild.attrib['power'])
+			
+			if child.tag == 'weaponList':
+				equipment['missiles'] = child.attrib['missiles']
+				equipment['weaponList'] = []
+				for wchild in child:
+					equipment['weaponList'].append(wchild.attrib['name'])
+			
+			if child.tag == 'droneList':
+				equipment['drones'] = child.attrib['drones']
+				equipment['droneList'] = []
+				for wchild in child:
+					equipment['droneList'].append(wchild.attrib['name'])
+			
+			if child.tag == 'fuel':
+				equipment['fuel'] = int(child.attrib['amount'])
+				
+			if child.tag == 'scrap':
+				equipment['scrap'] = int(child.attrib['amount'])
+				
+			if child.tag == 'maxPower':
+				equipment['systems']['reactor'] = int(child.attrib['amount'])
+				
+			if child.tag == 'crewCount':
+				for x in range(0, int(child.attrib['amount'])):
+					equipment['crew'].append(child.attrib['class'])
+				
 
 def FTLEventTextParse(data):
 	text_ids = {'continue': 'Continue...'}
@@ -72,16 +109,12 @@ def FTLEventParse(data):
 
 				if echild.tag == 'item_modify':
 					# fuel, missiles, drone parts
-					item_modify = [[0, 0], [0, 0], [0, 0], [0, 0]]
+					item_modify = {'steal' : 'false'}
+					if 'steal' in echild.attrib:
+						item_modify['steal'] = echild.attrib['steal']
 					for imchild in echild:
-						if imchild.attrib['type'] == 'fuel':
-							item_modify[0] = [int(imchild.attrib['min']), int(imchild.attrib['max'])]
-						elif imchild.attrib['type'] == 'missiles':
-							item_modify[1] = [int(imchild.attrib['min']), int(imchild.attrib['max'])]
-						elif imchild.attrib['type'] == 'drones':
-							item_modify[2] = [int(imchild.attrib['min']), int(imchild.attrib['max'])]
-						elif imchild.attrib['type'] == 'scrap':
-							item_modify[3] = [int(imchild.attrib['min']), int(imchild.attrib['max'])]
+						if imchild.attrib['type'] in ['fuel', 'missiles', 'drones', 'scrap']:
+							item_modify[imchild.attrib['type']] = {'min' : int(imchild.attrib['min']), 'max' : int(imchild.attrib['max']), 'rand' : -1}
 						else:
 							print('Event error: The event ' + eventNames[-1] + ' has an <item> tag with an unrecognizable attribute name.')
 					events[eventNames[-1]]['item_modify'] = item_modify
@@ -91,6 +124,10 @@ def FTLEventParse(data):
 					events[eventNames[-1]]['choice ' + str(choiceNumber)] = {}
 					if 'req' in echild.attrib:
 						events[eventNames[-1]]['choice ' + str(choiceNumber)]['req'] = echild.attrib['req']
+					if 'hidden' in echild.attrib:
+						events[eventNames[-1]]['choice ' + str(choiceNumber)]['hidden'] = echild.attrib['hidden']
+					else:
+						events[eventNames[-1]]['choice ' + str(choiceNumber)]['hidden'] = 'false'
 
 					for chochild in echild:
 						if chochild.tag == 'text':
@@ -186,6 +223,17 @@ FTLTextListParse()
 
 errorCheck()
 
+tree = ET.parse('ship.xml')
+root = tree.getroot()
+
+if root.tag != 'FTL':
+	print('ERROR: text_events.xml not encapsulated in FTL tag. This tag is required for this parser to work.')
+	while 0 == 0:
+		input()
+
+FTLEquipmentParse(root)
+
+
 command_list = '''
 !eventList - bring up a list of loadable events.
 !exit - leave event mode or command line.
@@ -194,6 +242,7 @@ command_list = '''
 !qlist - bring up a list of loaded quest events.
 !qload - load a random quest event to play.
 !reload - reloaded previously played event.
+!ship - show simulated ship details
 '''
 
 
@@ -217,6 +266,12 @@ def eventEnd(quests):
 			print(str(len(quests)) + ' event beacons were placed from this event. do !qload to load a random quest event and !qlist to show a list of loaded quest events. Loading a non-quest event clears this list.')	
 		rand.shuffle(quests)
 		eventMode = False
+		
+def item_modifyCalc(event):
+	if 'item_modify' in events[event]:
+		for item in events[event]['item_modify']:
+			if item != 'steal':
+				events[event]['item_modify'][item]['rand'] = rand.randint(events[event]['item_modify'][item]['min'], events[event]['item_modify'][item]['max'])
 	
 
 while 0 == 0:
@@ -269,20 +324,24 @@ while 0 == 0:
 			else:
 				eventMode = True
 				print('Event reloaded.\nEvent mode on.\nUse !exit to leave event mode.\n')
+				
+		if command == '!ship':
+			print(equipment)
+			#To be improved
+		
 	else:
+	
+		item_modifyCalc(loadedEvent)
+		
+		if 'item_modify' in events[loadedEvent]:
+			for item in events[loadedEvent]['item_modify']:
+				if events[loadedEvent]['item_modify']['rand'] < 0:
+					print('You lost ' + str(-1 * events[loadedEvent]['item_modify']['rand']) + ' ' + item + '.\n')
+				elif events[loadedEvent]['item_modify']['rand'] > 0:
+					print('You got ' + str(events[loadedEvent]['item_modify']['rand']) + ' ' + item + '.\n')
 		
 		if 'eventList' in events[loadedEvent]:
 			loadedEvent = rand.choice(events[loadedEvent]['eventList'])
-		
-		if 'item_modify' in events[loadedEvent]:
-			change_range = events[loadedEvent]['item_modify']
-			item_change = [rand.randint(change_range[0][0], change_range[0][1]), rand.randint(change_range[1][0], change_range[1][1]), rand.randint(change_range[2][0], change_range[2][1]), rand.randint(change_range[3][0], change_range[3][1])]
-			names = ['fuel', 'missiles', 'drone parts']
-			for x in range(0, 3):
-				if item_change[x] < 0:
-					print('You lost ' + str(item_change[0])[1:] + ' ' + names[x] + '.\n')
-				if item_change[x] > 0:
-					print('You got ' + str(item_change[0])[1:] + ' ' + names[x] + '.\n')
 					
 		if 'store' in events[loadedEvent] and events[loadedEvent]['beacon'] != 'store':
 			print('A store is available here')
@@ -298,11 +357,32 @@ while 0 == 0:
 			textLoaded = events[loadedEvent]['text']
 			print(rand.choice(textLoaded) + '\n')
 			choiceNumb = 0
+			choiceNumbShown = 0
 			while 0 == 0:
 				if 'choice ' + str(choiceNumb) in events[loadedEvent]:
+					if events[loadedEvent]['choice ' + str(choiceNumb)]['event'] != -1:
+						item_modifyCalc(events[loadedEvent]['choice ' + str(choiceNumb)]['event'])
+					if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'true':
+						if 'req' in events[loadedEvent]['choice ' + str(choiceNumb)]:
+							if events[loadedEvent]['choice ' + str(choiceNumb)]['req'] not in (equipment['systems'] and equipment['crew'] and equipment['weaponList'] and equipment['droneList']):
+								choiceNumb += 1
+								continue
+									
+						if 'item_modify' in events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']] and events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]['steal'] == 'true':
+							eventCheck = events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]
+							reqCheck = True
+							for item in events[eventCheck]['item_modify']:
+								if events[eventCheck]['item_modify'][item] > equipment[item]:
+									reqCheck = False
+									break
+							if reqCheck is False:
+								choiceNumb +=1
+								continue				
+					
 					textLoaded = events[loadedEvent]['choice ' + str(choiceNumb)]['text']
-					print(str(choiceNumb + 1) + '. ' + rand.choice(textLoaded))
+					print(str(choiceNumbShown + 1) + '. ' + rand.choice(textLoaded))
 					choiceNumb += 1
+					choiceNumbShown += 1
 				else:
 					break
 			avaliabeCommands = ['!exit']
