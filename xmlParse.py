@@ -33,7 +33,8 @@ def FTLEventParse(data):
 				eventNames.append(child.attrib['name'])
 				callableEvents.append(child.attrib['name'])
 			elif data == root:
-				break
+				print('Error: Unnamed top-level event.')
+				continue
 			else:
 				eventNames.append(xmlParseReq[data])
 				number = 0
@@ -57,7 +58,12 @@ def FTLEventParse(data):
 					if 'load' in echild.attrib:
 						events[eventNames[-1]]['textList'] = echild.attrib['load']
 					elif 'id' in echild.attrib:
-						events[eventNames[-1]]['text'] = [text_ids[echild.attrib['id']]]
+						if echild.attrib['id'] in text_ids:
+							events[eventNames[-1]]['text'] = [text_ids[echild.attrib['id']]]
+						else:
+							print('Error: id ' + echild.attrib['id'] + ' not found in ' + eventNames[-1])
+							events[eventNames[-1]]['text'] = ['id ' + echild.attrib['id'] + ' not found']
+							
 					else:
 						events[eventNames[-1]]['text'] = [echild.text]
 
@@ -108,7 +114,10 @@ def FTLEventParse(data):
 								events[eventNames[-1] + '_c' + str(choiceNumber)] = {}
 								xmlParseReq[echild] = eventNames[-1] + '_c' + str(choiceNumber)
 					choiceNumber += 1
-
+			
+			if choiceNumber >= 5:
+				print('Warning: ' + eventNames[-1] + ' has a lot of choice options. FTL may look funky with too many choices in an event.\nEither use choice requirements to make only a few appear at a time, or reduce the number of choices in your event.')
+				
 			if 'choice 0' not in events[eventNames[-1]] and 'text' in events[eventNames[-1]]:
 				events[eventNames[-1]]['choice 0'] = {'text': ['Continue'], 'event': -1}
 
