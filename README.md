@@ -20,6 +20,8 @@ Features so far:
 
 -Has a custom-made command line with various commands
 
+-A basic error checker
+
 Essentially it can handle the bulk of an event's structure, choices, randomisation, etc.
 
 
