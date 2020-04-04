@@ -66,14 +66,18 @@ def FTLEventParse(data):
 
 				if echild.tag == 'item_modify':
 					# fuel, missiles, drone parts
-					item_modify = [[0, 0], [0, 0], [0, 0]]
+					item_modify = [[0, 0], [0, 0], [0, 0], [0, 0]]
 					for imchild in echild:
 						if imchild.attrib['type'] == 'fuel':
 							item_modify[0] = [int(imchild.attrib['min']), int(imchild.attrib['max'])]
-						if imchild.attrib['type'] == 'missiles':
+						elif imchild.attrib['type'] == 'missiles':
 							item_modify[1] = [int(imchild.attrib['min']), int(imchild.attrib['max'])]
-						if imchild.attrib['type'] == 'drone_parts':
+						elif imchild.attrib['type'] == 'drones':
 							item_modify[2] = [int(imchild.attrib['min']), int(imchild.attrib['max'])]
+						elif imchild.attrib['type'] == 'scrap':
+							item_modify[3] = [int(imchild.attrib['min']), int(imchild.attrib['max'])]
+						else:
+							print('Event error: The event ' + eventNames[-1] + ' has an <item> tag with an unrecognizable attribute name.')
 					events[eventNames[-1]]['item_modify'] = item_modify
 
 
@@ -123,6 +127,11 @@ def FTLTextListParse():
 						# print(temp_list)
 						del events[event]['textList']
 						events[event]['text'] = temp_list
+						
+	for event in events:
+		if 'text' in events[event]:
+			if type(events[event]['text']) is not list:
+				print('Error: Unidentified text list called by ' + event)
 
 tree = ET.parse('text_events.xml')
 root = tree.getroot()
@@ -244,7 +253,7 @@ while 0 == 0:
 		
 		if 'item_modify' in events[loadedEvent]:
 			change_range = events[loadedEvent]['item_modify']
-			item_change = [rand.randint(change_range[0][0], change_range[0][1]), rand.randint(change_range[1][0], change_range[1][1]), rand.randint(change_range[2][0], change_range[2][1])]
+			item_change = [rand.randint(change_range[0][0], change_range[0][1]), rand.randint(change_range[1][0], change_range[1][1]), rand.randint(change_range[2][0], change_range[2][1]), rand.randint(change_range[3][0], change_range[3][1])]
 			names = ['fuel', 'missiles', 'drone parts']
 			for x in range(0, 3):
 				if item_change[x] < 0:
