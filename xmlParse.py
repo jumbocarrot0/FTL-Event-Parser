@@ -121,6 +121,17 @@ def FTLEventParse(data):
 					events[eventNames[-1]]['choice ' + str(choiceNumber)] = {}
 					if 'req' in echild.attrib:
 						events[eventNames[-1]]['choice ' + str(choiceNumber)]['req'] = echild.attrib['req']
+						if 'lvl' in echild.attrib:
+							events[eventNames[-1]]['choice ' + str(choiceNumber)]['lvl_range'] = [echild.attrib['lvl']]
+						else:
+							events[eventNames[-1]]['choice ' + str(choiceNumber)]['lvl_range'] = [1]
+						if 'max_lvl' in echild.attrib:
+							events[eventNames[-1]]['choice ' + str(choiceNumber)]['lvl_range'].append(echild.attrib['max_lvl'])
+						else:
+							events[eventNames[-1]]['choice ' + str(choiceNumber)]['lvl_range'].append(16)
+						
+					if 'max_group' in echild.attrib:
+						events[eventNames[-1]]['choice ' + str(choiceNumber)]['max_group'] = echild.attrib['max_group']
 					if 'hidden' in echild.attrib:
 						events[eventNames[-1]]['choice ' + str(choiceNumber)]['hidden'] = echild.attrib['hidden']
 					else:
@@ -365,12 +376,24 @@ while 0 == 0:
 					if events[loadedEvent]['choice ' + str(choiceNumb)]['event'] != -1:
 						item_modifyCalc(events[loadedEvent]['choice ' + str(choiceNumb)]['event'])
 					if 'req' in events[loadedEvent]['choice ' + str(choiceNumb)]:
-						if events[loadedEvent]['choice ' + str(choiceNumb)]['req'] not in list(equipment['systems'].keys()) + equipment['crew'] + equipment['weaponList'] + equipment['droneList']:
+						lvl_range = []
+						
+						for x in range(int(events[loadedEvent]['choice ' + str(choiceNumb)]['lvl_range'][0]), int(events[loadedEvent]['choice ' + str(choiceNumb)]['lvl_range'][1])+1):
+							lvl_range.append(x)
+							
+						if events[loadedEvent]['choice ' + str(choiceNumb)]['req'] in equipment['systems'].keys():
+							if equipment['systems'][events[loadedEvent]['choice ' + str(choiceNumb)]['req']] not in lvl_range:
+								if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false':
+									print('X. ' + rand.choice(textLoaded))
+								choiceNumb += 1
+								continue
+							
+						elif list(equipment['crew'] + equipment['weaponList'] + equipment['droneList']).count(events[loadedEvent]['choice ' + str(choiceNumb)]['req']) not in lvl_range:
 							if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false':
 								print('X. ' + rand.choice(textLoaded))
 							choiceNumb += 1
 							continue
-					
+							
 					if events[loadedEvent]['choice ' + str(choiceNumb)]['event'] != -1:
 						if 'item_modify' in events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']] and events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]['item_modify']['steal'] == 'false':
 							eventCheck = events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]

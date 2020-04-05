@@ -25,8 +25,8 @@ Do not remove the FTL Tag -->
 		<text>Loading Loading Loading</text>
 		<event load="EXAMPLE_EVENT_2"/>
 	</choice>
-	<choice req="engi" hidden="true">
-		<text>(Engi Crew) This would be blue</text>
+	<choice req="doors" hidden="true" lvl="3">
+		<text>(Doors Subsystem) This would be blue</text>
 		<event>
 			<item_modify steal="true">
 				<item type="fuel" min="-3" max="-2"/>
