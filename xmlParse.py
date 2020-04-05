@@ -5,27 +5,24 @@ events = {}
 eventNames = []
 callableEvents = []
 xmlParseReq = {}
-equipment = {'crew' : [], 'systems' : [], 'weaponList' : [], 'droneList' : [], 'missiles' : 0, 'drones' : 0, 'fuel' : 0, 'scrap' : 0, }
+equipment = {'crew' : [], 'systems' : {}, 'weaponList' : [], 'droneList' : [], 'missiles' : 0, 'drones' : 0, 'fuel' : 0, 'scrap' : 0, }
 
 def FTLEquipmentParse(data):
 	global equipment
 	for blueprint in data:
 		for child in blueprint:
 			if child.tag == 'systemList':
-				equipment['systems'] = {}
 				for schild in child:
 					if schild.attrib['start'] == 'true':
 						equipment['systems'][schild.tag] = int(schild.attrib['power'])
 			
 			if child.tag == 'weaponList':
 				equipment['missiles'] = child.attrib['missiles']
-				equipment['weaponList'] = []
 				for wchild in child:
 					equipment['weaponList'].append(wchild.attrib['name'])
 			
 			if child.tag == 'droneList':
 				equipment['drones'] = child.attrib['drones']
-				equipment['droneList'] = []
 				for wchild in child:
 					equipment['droneList'].append(wchild.attrib['name'])
 			
@@ -358,36 +355,45 @@ while 0 == 0:
 			textLoaded = events[loadedEvent]['text']
 			print(rand.choice(textLoaded) + '\n')
 			choiceNumb = 0
-			choiceNumbShown = 0
+			#Selectable choices
+			choicesSelectable = []
+			#All non-hidden choices
+			choicesShown = []
 			while 0 == 0:
 				if 'choice ' + str(choiceNumb) in events[loadedEvent]:
+					choicesShown.append(choiceNumb + 1)
 					if events[loadedEvent]['choice ' + str(choiceNumb)]['event'] != -1:
 						item_modifyCalc(events[loadedEvent]['choice ' + str(choiceNumb)]['event'])
-					if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'true':
-						if 'req' in events[loadedEvent]['choice ' + str(choiceNumb)]:
-							if events[loadedEvent]['choice ' + str(choiceNumb)]['req'] not in (equipment['systems'] and equipment['crew'] and equipment['weaponList'] and equipment['droneList']):
-								choiceNumb += 1
-								continue
-									
-						if 'item_modify' in events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']] and events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]['steal'] == 'true':
+					if 'req' in events[loadedEvent]['choice ' + str(choiceNumb)]:
+						if events[loadedEvent]['choice ' + str(choiceNumb)]['req'] not in list(equipment['systems'].keys()) + equipment['crew'] + equipment['weaponList'] + equipment['droneList']:
+							if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false':
+								print('X. ' + rand.choice(textLoaded))
+							choiceNumb += 1
+							continue
+					
+					if events[loadedEvent]['choice ' + str(choiceNumb)]['event'] != -1:
+						if 'item_modify' in events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']] and events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]['item_modify']['steal'] == 'false':
 							eventCheck = events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]
 							reqCheck = True
-							for item in events[eventCheck]['item_modify']:
-								if events[eventCheck]['item_modify'][item] > equipment[item]:
-									reqCheck = False
-									break
+							for item in eventCheck['item_modify']:
+								if item != 'steal':
+									if eventCheck['item_modify'][item]['rand'] > equipment[item]:
+										reqCheck = False
+										break
 							if reqCheck is False:
+								if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false':
+									print('X. ' + rand.choice(textLoaded))
 								choiceNumb +=1
 								continue				
 					
 					textLoaded = events[loadedEvent]['choice ' + str(choiceNumb)]['text']
-					print(str(choiceNumbShown + 1) + '. ' + rand.choice(textLoaded))
+					print(str(len(choicesShown)) + '. ' + rand.choice(textLoaded))
+					choicesSelectable.append(choiceNumb + 1)
 					choiceNumb += 1
-					choiceNumbShown += 1
 				else:
 					break
 			avaliabeCommands = ['!exit']
-			for x in range(1, choiceNumb + 1):
+			for x in choicesSelectable:
 				avaliabeCommands.append(str(x))
 			command = '-1'
 			while command not in avaliabeCommands:
