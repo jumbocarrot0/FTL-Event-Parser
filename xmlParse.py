@@ -59,7 +59,7 @@ def FTLEventParse(data):
 				eventNames.append(child.attrib['name'])
 				callableEvents.append(child.attrib['name'])
 				xmlParseReq[child] = child.attrib['name']
-				events[child.attrib['name']] = {'eventList':[]}
+				events[child.attrib['name']] = {'eventList':[], 'rand':-1}
 				for x in range(0, len(child)):
 					events[child.attrib['name']]['eventList'].append(child.attrib['name'] + '_e' + str(x))
 
@@ -287,6 +287,10 @@ def item_modifyCalc(event):
 			if item != 'steal':
 				events[event]['item_modify'][item]['rand'] = rand.randint(events[event]['item_modify'][item]['min'], events[event]['item_modify'][item]['max'])
 	
+def eventListCalc(event):
+	if 'eventList' in events[event]:
+		events[event]['rand'] = rand.randint(0, len(events[event]['eventList']) - 1)
+	
 def noChoiceReq():
 	global choiceNumb
 	global max_groupsSeen
@@ -319,6 +323,7 @@ while 0 == 0:
 				loadedEvent = command[6:]
 				loadedEventCmd = loadedEvent
 				item_modifyCalc(loadedEvent)
+				eventListCalc(loadedEvent)
 				if loadedEventCmd not in quests and len(quests) > 0:
 					quests = []
 					print('Quest events cleared')
@@ -355,7 +360,6 @@ while 0 == 0:
 			#To be improved
 		
 	else:
-	
 		
 		if 'item_modify' in events[loadedEvent]:
 			for item in events[loadedEvent]['item_modify']:
@@ -366,7 +370,8 @@ while 0 == 0:
 						print('You got ' + str(events[loadedEvent]['item_modify'][item]['rand']) + ' ' + item)
 		
 		if 'eventList' in events[loadedEvent]:
-			loadedEvent = rand.choice(events[loadedEvent]['eventList'])
+			print(loadedEvent)
+			loadedEvent = events[loadedEvent]['eventList'][events[loadedEvent]['rand']]
 					
 		if 'store' in events[loadedEvent] and events[loadedEvent]['beacon'] != 'store':
 			print('A store is available here')
@@ -389,8 +394,9 @@ while 0 == 0:
 			max_groupsSeen = []
 			while 0 == 0:
 				if 'choice ' + str(choiceNumb) in events[loadedEvent]:
-					
+				
 					if events[loadedEvent]['choice ' + str(choiceNumb)]['event'] != -1:
+						eventListCalc(events[loadedEvent]['choice ' + str(choiceNumb)]['event'])
 						item_modifyCalc(events[loadedEvent]['choice ' + str(choiceNumb)]['event'])
 						
 					if 'max_group' in events[loadedEvent]['choice ' + str(choiceNumb)]:
@@ -417,8 +423,13 @@ while 0 == 0:
 					
 					choiceEffectText = ''
 					
-					if events[loadedEvent]['choice ' + str(choiceNumb)]['event'] != -1:
+					if 'eventList' in events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]:
 						eventCheck = events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]
+						eventCheck = eventCheck['eventList'][eventCheck['rand']]
+					else:
+						eventCheck = events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]
+					
+					if eventCheck != -1:
 						if 'item_modify' in eventCheck:
 							if eventCheck['item_modify']['steal'] == 'false':
 								reqCheck = True
