@@ -107,6 +107,38 @@ def FTLEventParse(data):
 				if echild.tag == 'ship' and 'load' in echild.attrib:
 					events[eventNames[-1]]['ship'] = echild.attrib['load']
 
+				if child.tag in ['weapon', 'drone', 'augment']:
+					if echild.attrib['name'] == 'RANDOM':
+						#placeholder for now
+						events[eventNames[-1]]['cargoAdd'] = echild.attrib['name']						
+					else:
+						events[eventNames[-1]]['cargoAdd'] = echild.attrib['name']
+
+				if child.tag == 'remove':
+					if echild.attrib['name'] == 'RANDOM':
+						events[eventNames[-1]]['cargoRemove'] = echild.attrib['name']
+
+				if child.tag == 'reveal_map':
+					events[eventNames[-1]]['reveal_map'] = 'reveal_map'
+
+				if child.tag == 'modifyPursuit':
+					events[eventNames[-1]]['modifyPursuit'] = int(child.attrib['amount'])
+
+				if child.tag == 'secretSector':
+					events[eventNames[-1]]['secretSector'] = 'secrectSector'
+
+				if child.tag == 'unlockShip':
+					events[eventNames[-1]]['unlockShip'] = child.attrib['id']
+
+				if child.tag == 'environment':
+					if child.attrib['type'] in ['nebula', 'asteroid', 'sun', 'storm', 'pulsar', 'PDS']:
+						events[eventNames[-1]]['type'] = child.attrib['type']
+					else:
+						print('ERROR: unrecognised environmenttype in ' + eventNames[-1])
+
+				if child.tag == 'boarders':
+					events[eventNames[-1]]['boarders'] = {'class' : child.attrib['class'], 'min' : int(child.attrib['min']), 'max' : int(child.attrib['max'])}
+
 				if echild.tag == 'item_modify':
 					# fuel, missiles, drone parts
 					item_modify = {'steal' : 'false'}
@@ -118,7 +150,7 @@ def FTLEventParse(data):
 						elif imchild.attrib['type'] == 'drones':
 							item_modify['drone parts'] = {'min' : int(imchild.attrib['min']), 'max' : int(imchild.attrib['max']), 'rand' : -1}
 						else:
-							print('Event error: The event ' + eventNames[-1] + ' has an <item> tag with an unrecognizable attribute name.')
+							print('Event error: The event ' + eventNames[-1] + ' has an <item> tag with an unrecognisable attribute name.')
 					events[eventNames[-1]]['item_modify'] = item_modify
 
 
@@ -305,6 +337,9 @@ def noChoiceReq():
 while 0 == 0:
 
 	if eventMode is False:
+	
+		simmedEquipment = equipment
+	
 		command = input('>>> ')
 
 		if command == '!eventList':
@@ -371,6 +406,38 @@ while 0 == 0:
 						print('You lost ' + str(-1 * events[loadedEvent]['item_modify'][item]['rand']) + ' ' + item)
 					elif int(events[loadedEvent]['item_modify'][item]['rand']) > 0:
 						print('You got ' + str(events[loadedEvent]['item_modify'][item]['rand']) + ' ' + item)
+					simmedEquipment[item] += events[loadedEvent]['item_modify'][item]['rand']
+					
+		if 'cargoAdd' in events[loadedEvent]:
+			simmedEquipment['cargo'].append(events[loadedEvent]['cargoAdd'])
+					
+		if 'cargoRemove' in events[loadedEvent]:
+			del simmedEquipment['cargo'][simmedEquipment['cargo'].index(events[loadedEvent]['cargoRemove'])]
+					
+		if 'reveal_map' in events[loadedEvent]:
+			print('Your Map has been updated')
+					
+		if 'modifyPursuit ' in events[loadedEvent]:
+			if events[loadedEvent]['modifyPursuit'] < 0:
+				print('The rebels have been delayed for ' str(events[loadedEvent]['modifyPursuit'] * -1) + ' jumps.')
+			if events[loadedEvent]['modifyPursuit'] > 0:
+				print('The rebels have advanced ' str(events[loadedEvent]['modifyPursuit']) + ' jumps.')
+					
+		if 'secretSector ' in events[loadedEvent]:
+			print('Travelling to the secret sector.')
+			
+		if 'unlockShip' in events[loadedEvent]:
+			#placeholder
+			print('You\'ve unlocked the ship with id ' + events[loadedEvent]['unlockShip'])
+			
+		if 'environment' in events[loadedEvent]:
+			print('This beacon has a ' + events[loadedEvent]['environment'])
+			
+		if 'boarders' in events[loadedEvent]:
+			if events[loadedEvent]['boarders']['class'] == 'random':
+				print(str(rand.randint(events[loadedEvent]['boarders']['min'], events[loadedEvent]['boarders']['max'])) + ' boarders have entered your ship!')
+			else:
+				print(str(rand.randint(events[loadedEvent]['boarders']['min'], events[loadedEvent]['boarders']['max'])) + ' ' + events[loadedEvent]['boarders']['class'] + ' have entered your ship!')
 					
 		if 'store' in events[loadedEvent] and events[loadedEvent]['beacon'] != 'store':
 			print('A store is available here')
@@ -419,12 +486,12 @@ while 0 == 0:
 						for x in range(int(events[loadedEvent]['choice ' + str(choiceNumb)]['lvl_range'][0]), int(events[loadedEvent]['choice ' + str(choiceNumb)]['lvl_range'][1])+1):
 							lvl_range.append(x)
 							
-						if events[loadedEvent]['choice ' + str(choiceNumb)]['req'] in equipment['systems'].keys():
-							if equipment['systems'][events[loadedEvent]['choice ' + str(choiceNumb)]['req']] not in lvl_range:
+						if events[loadedEvent]['choice ' + str(choiceNumb)]['req'] in simmedEquipment['systems'].keys():
+							if simmedEquipment['systems'][events[loadedEvent]['choice ' + str(choiceNumb)]['req']] not in lvl_range:
 								noChoiceReq()
 								continue
 							
-						elif list(equipment['cargo']).count(events[loadedEvent]['choice ' + str(choiceNumb)]['req']) not in lvl_range:
+						elif list(simmedEquipment['cargo']).count(events[loadedEvent]['choice ' + str(choiceNumb)]['req']) not in lvl_range:
 							noChoiceReq()
 							continue
 					
@@ -436,7 +503,7 @@ while 0 == 0:
 								reqCheck = True
 								for item in eventCheck['item_modify']:
 									if item != 'steal':
-										if -1 * eventCheck['item_modify'][item]['rand'] > equipment[item]:
+										if -1 * eventCheck['item_modify'][item]['rand'] > simmedEquipment[item]:
 											reqCheck = False
 											breakc
 										
@@ -444,12 +511,16 @@ while 0 == 0:
 									noChoiceReq()
 									continue
 							
-							if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false':
+						if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false':
+							if 'item_modify' in eventCheck:
 								for item in eventCheck['item_modify']:	
 									if item != 'steal':
 										choiceEffectText += str(eventCheck['item_modify'][item]['rand']) + ' ' + item + ', '
 								if len(choiceEffectText) > 0:
 									choiceEffectText = choiceEffectText[:-2]
+									
+							if 'cargoAdd' in eventCheck:
+								choiceEffectText += 'Item: ' eventCheck['cargoAdd']
 					
 					if len(choiceEffectText) > 0:
 						choiceEffectText = '    [' + choiceEffectText + ']'
