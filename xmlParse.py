@@ -282,14 +282,14 @@ def eventEnd(quests):
 		eventMode = False
 		
 def item_modifyCalc(event):
-	if 'item_modify' in events[event]:
-		for item in events[event]['item_modify']:
+	if 'item_modify' in event:
+		for item in event['item_modify']:
 			if item != 'steal':
-				events[event]['item_modify'][item]['rand'] = rand.randint(events[event]['item_modify'][item]['min'], events[event]['item_modify'][item]['max'])
+				event['item_modify'][item]['rand'] = rand.randint(event['item_modify'][item]['min'], event['item_modify'][item]['max'])
 	
 def eventListCalc(event):
-	if 'eventList' in events[event]:
-		events[event]['rand'] = rand.randint(0, len(events[event]['eventList']) - 1)
+	if 'eventList' in event:
+		event['rand'] = rand.randint(0, len(event['eventList']) - 1)
 	
 def noChoiceReq():
 	global choiceNumb
@@ -361,6 +361,9 @@ while 0 == 0:
 		
 	else:
 		
+		if 'eventList' in events[loadedEvent]:
+			loadedEvent = events[loadedEvent]['eventList'][events[loadedEvent]['rand']]
+		
 		if 'item_modify' in events[loadedEvent]:
 			for item in events[loadedEvent]['item_modify']:
 				if item != 'steal':
@@ -368,10 +371,6 @@ while 0 == 0:
 						print('You lost ' + str(-1 * events[loadedEvent]['item_modify'][item]['rand']) + ' ' + item)
 					elif int(events[loadedEvent]['item_modify'][item]['rand']) > 0:
 						print('You got ' + str(events[loadedEvent]['item_modify'][item]['rand']) + ' ' + item)
-		
-		if 'eventList' in events[loadedEvent]:
-			print(loadedEvent)
-			loadedEvent = events[loadedEvent]['eventList'][events[loadedEvent]['rand']]
 					
 		if 'store' in events[loadedEvent] and events[loadedEvent]['beacon'] != 'store':
 			print('A store is available here')
@@ -394,10 +393,18 @@ while 0 == 0:
 			max_groupsSeen = []
 			while 0 == 0:
 				if 'choice ' + str(choiceNumb) in events[loadedEvent]:
+					
+					if events[loadedEvent]['choice ' + str(choiceNumb)]['event'] == -1:
+						eventCheck = -1
+					elif 'eventList' in events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]:
+						eventCheck = events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]
+						eventCheck = events[eventCheck['eventList'][eventCheck['rand']]]
+					else:
+						eventCheck = events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]
 				
 					if events[loadedEvent]['choice ' + str(choiceNumb)]['event'] != -1:
-						eventListCalc(events[loadedEvent]['choice ' + str(choiceNumb)]['event'])
-						item_modifyCalc(events[loadedEvent]['choice ' + str(choiceNumb)]['event'])
+						eventListCalc(eventCheck)
+						item_modifyCalc(eventCheck)
 						
 					if 'max_group' in events[loadedEvent]['choice ' + str(choiceNumb)]:
 						if events[loadedEvent]['choice ' + str(choiceNumb)]['max_group'] not in max_groupsSeen:
@@ -423,12 +430,6 @@ while 0 == 0:
 					
 					choiceEffectText = ''
 					
-					if 'eventList' in events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]:
-						eventCheck = events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]
-						eventCheck = eventCheck['eventList'][eventCheck['rand']]
-					else:
-						eventCheck = events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]
-					
 					if eventCheck != -1:
 						if 'item_modify' in eventCheck:
 							if eventCheck['item_modify']['steal'] == 'false':
@@ -437,9 +438,7 @@ while 0 == 0:
 									if item != 'steal':
 										if -1 * eventCheck['item_modify'][item]['rand'] > equipment[item]:
 											reqCheck = False
-											break
-										
-										
+											breakc
 										
 								if reqCheck is False:
 									noChoiceReq()
@@ -468,6 +467,7 @@ while 0 == 0:
 			command = '-1'
 			while command not in avaliabeCommands:
 				command = input('Enter choice number: ')
+			print('\n')
 			if command == '!exit':
 				eventMode = False
 			else:

@@ -67,27 +67,25 @@ Do not remove the FTL Tag -->
 	<text>This was possibility one of three!</text>
 </event>
 <event>
+	<item_modify>
+		<item type="scrap" min="30" max="50"/>
+	</item_modify>
 	<text>This was possibility two of three. Here, have some scrap.</text>
 	<choice>
 		<text>Nice!</text>
-		<event>
-			<item_modify>
-				<item type="scrap" min="30" max="50"/>
-			</item_modify>
-		</event>
+		<event/>
 	</choice>
 </event>
 <event>
-	<text>This was possibility three of three. I'll take that scrap and turn it into materials!</text>
+	<item_modify steal="true">
+		<item type="scrap" min="-10" max="-5"/>
+		<item type="missiles" min="2" max="3"/>
+		<item type="drones" min="1" max="3"/>
+	</item_modify>
+	<text>This was possibility three of three. I've taken your scrap and turned it into materials!</text>
 	<choice>
 		<text>You have no choice in the matter.</text>
-		<event>
-			<item_modify steal="true">
-				<item type="scrap" min="-10" max="-5"/>
-				<item type="missiles" min="2" max="3"/>
-				<item type="drones" min="1" max="3"/>
-			</item_modify>
-		</event>
+		<event/>
 	</choice>
 </event>
 </eventList>
