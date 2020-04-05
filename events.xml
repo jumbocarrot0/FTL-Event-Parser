@@ -25,7 +25,7 @@ Do not remove the FTL Tag -->
 		<text>Loading Loading Loading</text>
 		<event load="EXAMPLE_EVENT_2"/>
 	</choice>
-	<choice req="doors" hidden="true" lvl="3">
+	<choice req="doors" hidden="true" lvl="2">
 		<text>(Doors Subsystem) This would be blue</text>
 		<event>
 			<item_modify steal="true">
@@ -52,7 +52,11 @@ Do not remove the FTL Tag -->
 
 <event name="EXAMPLE_EVENT_3">
 	<text>Here's some text!</text>
-	<choice>
+	<choice req="mantis" max_group="0">
+		<text>Flip the coin!</text>
+		<event load="EXAMPLE_EVENTLIST"/>
+	</choice>
+	<choice max_group="0">
 		<text>Roll the dice!</text>
 		<event load="EXAMPLE_EVENTLIST"/>
 	</choice>

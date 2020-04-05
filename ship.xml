@@ -39,6 +39,7 @@ Unnecessary tags and attributes have been removed, including them does not affec
 	<maxPower amount ="25"/>
 	<crewCount amount = "3" class="human"/>
 	<crewCount amount = "1" class="engi"/>
+	<aug name="CREW_STIMS"/>
 </shipBlueprint>
 
 </FTL>

@@ -5,7 +5,7 @@ events = {}
 eventNames = []
 callableEvents = []
 xmlParseReq = {}
-equipment = {'crew' : [], 'systems' : {}, 'weaponList' : [], 'droneList' : [], 'missiles' : 0, 'drones' : 0, 'fuel' : 0, 'scrap' : 0, }
+equipment = {'systems' : {}, 'cargo' : [], 'missiles' : 0, 'drone parts' : 0, 'fuel' : 0, 'scrap' : 0, }
 
 def FTLEquipmentParse(data):
 	global equipment
@@ -19,12 +19,15 @@ def FTLEquipmentParse(data):
 			if child.tag == 'weaponList':
 				equipment['missiles'] = child.attrib['missiles']
 				for wchild in child:
-					equipment['weaponList'].append(wchild.attrib['name'])
+					equipment['cargo'].append(wchild.attrib['name'])
 			
 			if child.tag == 'droneList':
-				equipment['drones'] = child.attrib['drones']
+				equipment['drone parts'] = child.attrib['drones']
 				for wchild in child:
-					equipment['droneList'].append(wchild.attrib['name'])
+					equipment['cargo'].append(wchild.attrib['name'])
+			
+			if child.tag == 'aug':
+				equipment['cargo'].append(child.attrib['name'])
 			
 			if child.tag == 'fuel':
 				equipment['fuel'] = int(child.attrib['amount'])
@@ -37,7 +40,7 @@ def FTLEquipmentParse(data):
 				
 			if child.tag == 'crewCount':
 				for x in range(0, int(child.attrib['amount'])):
-					equipment['crew'].append(child.attrib['class'])
+					equipment['cargo'].append(child.attrib['class'])
 				
 
 def FTLEventTextParse(data):
@@ -110,8 +113,10 @@ def FTLEventParse(data):
 					if 'steal' in echild.attrib:
 						item_modify['steal'] = echild.attrib['steal']
 					for imchild in echild:
-						if imchild.attrib['type'] in ['fuel', 'missiles', 'drones', 'scrap']:
+						if imchild.attrib['type'] in ['fuel', 'missiles', 'scrap']:
 							item_modify[imchild.attrib['type']] = {'min' : int(imchild.attrib['min']), 'max' : int(imchild.attrib['max']), 'rand' : -1}
+						elif imchild.attrib['type'] == 'drones':
+							item_modify['drone parts'] = {'min' : int(imchild.attrib['min']), 'max' : int(imchild.attrib['max']), 'rand' : -1}
 						else:
 							print('Event error: The event ' + eventNames[-1] + ' has an <item> tag with an unrecognizable attribute name.')
 					events[eventNames[-1]]['item_modify'] = item_modify
@@ -132,6 +137,7 @@ def FTLEventParse(data):
 						
 					if 'max_group' in echild.attrib:
 						events[eventNames[-1]]['choice ' + str(choiceNumber)]['max_group'] = echild.attrib['max_group']
+						
 					if 'hidden' in echild.attrib:
 						events[eventNames[-1]]['choice ' + str(choiceNumber)]['hidden'] = echild.attrib['hidden']
 					else:
@@ -265,13 +271,13 @@ quests = []
 def eventEnd(quests):
 	global eventMode
 	if len(quests) == 0:
-		[print('End of Event (!reload to repeat same event)')]
+		[print('\nEnd of Event (!reload to repeat same event)')]
 		eventMode = False
 	else:
 		if len(quests) == 1:	
-			print('1 event beacon was placed from this event. do !qload to load a random quest event and !qlist to show a list of loaded quest events. Loading a non-quest event clears this list.')	
+			print('\n1 event beacon was placed from this event. do !qload to load a random quest event and !qlist to show a list of loaded quest events. Loading a non-quest event clears this list.')	
 		else:
-			print(str(len(quests)) + ' event beacons were placed from this event. do !qload to load a random quest event and !qlist to show a list of loaded quest events. Loading a non-quest event clears this list.')	
+			print('\n' + str(len(quests)) + ' event beacons were placed from this event. do !qload to load a random quest event and !qlist to show a list of loaded quest events. Loading a non-quest event clears this list.')	
 		rand.shuffle(quests)
 		eventMode = False
 		
@@ -280,6 +286,16 @@ def item_modifyCalc(event):
 		for item in events[event]['item_modify']:
 			if item != 'steal':
 				events[event]['item_modify'][item]['rand'] = rand.randint(events[event]['item_modify'][item]['min'], events[event]['item_modify'][item]['max'])
+	
+def noChoiceReq():
+	global choiceNumb
+	global max_groupsSeen
+	if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false' and 'max_group' not in events[loadedEvent]['choice ' + str(choiceNumb)]:
+		print('X. ' + rand.choice(textLoaded))
+		choicesShown.append(choiceNumb + 1)
+	if 'max_group' in events[loadedEvent]['choice ' + str(choiceNumb)]:
+		max_groupsSeen = max_groupsSeen[:-1]
+	choiceNumb += 1
 	
 
 while 0 == 0:
@@ -302,6 +318,7 @@ while 0 == 0:
 				eventMode = True
 				loadedEvent = command[6:]
 				loadedEventCmd = loadedEvent
+				item_modifyCalc(loadedEvent)
 				if loadedEventCmd not in quests and len(quests) > 0:
 					quests = []
 					print('Quest events cleared')
@@ -339,15 +356,14 @@ while 0 == 0:
 		
 	else:
 	
-		item_modifyCalc(loadedEvent)
 		
 		if 'item_modify' in events[loadedEvent]:
 			for item in events[loadedEvent]['item_modify']:
 				if item != 'steal':
 					if int(events[loadedEvent]['item_modify'][item]['rand']) < 0:
-						print('You lost ' + str(-1 * events[loadedEvent]['item_modify'][item]['rand']) + ' ' + item + '.\n')
+						print('You lost ' + str(-1 * events[loadedEvent]['item_modify'][item]['rand']) + ' ' + item)
 					elif int(events[loadedEvent]['item_modify'][item]['rand']) > 0:
-						print('You got ' + str(events[loadedEvent]['item_modify'][item]['rand']) + ' ' + item + '.\n')
+						print('You got ' + str(events[loadedEvent]['item_modify'][item]['rand']) + ' ' + item)
 		
 		if 'eventList' in events[loadedEvent]:
 			loadedEvent = rand.choice(events[loadedEvent]['eventList'])
@@ -370,11 +386,20 @@ while 0 == 0:
 			choicesSelectable = []
 			#All non-hidden choices
 			choicesShown = []
+			max_groupsSeen = []
 			while 0 == 0:
 				if 'choice ' + str(choiceNumb) in events[loadedEvent]:
-					choicesShown.append(choiceNumb + 1)
+					
 					if events[loadedEvent]['choice ' + str(choiceNumb)]['event'] != -1:
 						item_modifyCalc(events[loadedEvent]['choice ' + str(choiceNumb)]['event'])
+						
+					if 'max_group' in events[loadedEvent]['choice ' + str(choiceNumb)]:
+						if events[loadedEvent]['choice ' + str(choiceNumb)]['max_group'] not in max_groupsSeen:
+							max_groupsSeen.append(events[loadedEvent]['choice ' + str(choiceNumb)]['max_group'])
+						else:
+							choiceNumb +=1
+							continue
+						
 					if 'req' in events[loadedEvent]['choice ' + str(choiceNumb)]:
 						lvl_range = []
 						
@@ -383,40 +408,51 @@ while 0 == 0:
 							
 						if events[loadedEvent]['choice ' + str(choiceNumb)]['req'] in equipment['systems'].keys():
 							if equipment['systems'][events[loadedEvent]['choice ' + str(choiceNumb)]['req']] not in lvl_range:
-								if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false':
-									print('X. ' + rand.choice(textLoaded))
-								choiceNumb += 1
+								noChoiceReq()
 								continue
 							
-						elif list(equipment['crew'] + equipment['weaponList'] + equipment['droneList']).count(events[loadedEvent]['choice ' + str(choiceNumb)]['req']) not in lvl_range:
-							if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false':
-								print('X. ' + rand.choice(textLoaded))
-							choiceNumb += 1
+						elif list(equipment['cargo']).count(events[loadedEvent]['choice ' + str(choiceNumb)]['req']) not in lvl_range:
+							noChoiceReq()
 							continue
-							
-					if events[loadedEvent]['choice ' + str(choiceNumb)]['event'] != -1:
-						if 'item_modify' in events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']] and events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]['item_modify']['steal'] == 'false':
-							eventCheck = events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]
-							reqCheck = True
-							for item in eventCheck['item_modify']:
-								if item != 'steal':
-									if eventCheck['item_modify'][item]['rand'] > equipment[item]:
-										reqCheck = False
-										break
-							if reqCheck is False:
-								if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false':
-									print('X. ' + rand.choice(textLoaded))
-								choiceNumb +=1
-								continue				
 					
+					choiceEffectText = ''
+					
+					if events[loadedEvent]['choice ' + str(choiceNumb)]['event'] != -1:
+						eventCheck = events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]
+						if 'item_modify' in eventCheck:
+							if eventCheck['item_modify']['steal'] == 'false':
+								reqCheck = True
+								for item in eventCheck['item_modify']:
+									if item != 'steal':
+										if -1 * eventCheck['item_modify'][item]['rand'] > equipment[item]:
+											reqCheck = False
+											break
+										
+										
+										
+								if reqCheck is False:
+									noChoiceReq()
+									continue
+							
+							if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false':
+								for item in eventCheck['item_modify']:	
+									if item != 'steal':
+										choiceEffectText += str(eventCheck['item_modify'][item]['rand']) + ' ' + item + ', '
+								if len(choiceEffectText) > 0:
+									choiceEffectText = choiceEffectText[:-2]
+					
+					if len(choiceEffectText) > 0:
+						choiceEffectText = '    [' + choiceEffectText + ']'
+					
+					choicesShown.append(choiceNumb + 1)
 					textLoaded = events[loadedEvent]['choice ' + str(choiceNumb)]['text']
-					print(str(len(choicesShown)) + '. ' + rand.choice(textLoaded))
+					print(str(len(choicesShown)) + '. ' + rand.choice(textLoaded) + choiceEffectText)
 					choicesSelectable.append(choiceNumb + 1)
 					choiceNumb += 1
 				else:
 					break
 			avaliabeCommands = ['!exit']
-			for x in choicesSelectable:
+			for x in range(1, len(choicesSelectable)+1):
 				avaliabeCommands.append(str(x))
 			command = '-1'
 			while command not in avaliabeCommands:
@@ -431,3 +467,4 @@ while 0 == 0:
 					loadedEvent = events[loadedEvent]['choice ' + str(command)]['event']
 		else:
 			eventEnd(quests)
+
