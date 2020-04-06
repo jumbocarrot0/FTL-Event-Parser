@@ -68,6 +68,16 @@ Do not remove the FTL Tag -->
 	</choice>
 </event>
 
+<event name="EXAMPLE_EVENT_QUEST">
+	<text>Go on a quest!</text>
+	<quest event="EXAMPLE_EVENT_QUEST_2"/>
+</event>
+
+<event name="EXAMPLE_EVENT_QUEST_2">
+	<text>Here's your destination, a pulsar!</text>
+	<environment type="pulsar"/>
+</event>
+
 <eventList name="EXAMPLE_EVENTLIST">
 <event>
 	<text>This was possibility one of three!</text>

@@ -132,7 +132,7 @@ def FTLEventParse(data):
 
 				if echild.tag == 'environment':
 					if echild.attrib['type'] in ['nebula', 'asteroid', 'sun', 'storm', 'pulsar', 'PDS']:
-						events[eventNames[-1]]['type'] = echild.attrib['type']
+						events[eventNames[-1]]['environment'] = echild.attrib['type']
 					else:
 						print('ERROR: unrecognised environment type in ' + eventNames[-1])
 
@@ -478,6 +478,7 @@ while 0 == 0:
 			if len(quests) > 0:
 				eventMode = True
 				loadedEvent = rand.choice(quests)
+				del quests[quests.index(loadedEvent)]
 				loadedEventCmd = loadedEvent
 				print('Random quest event loaded.\nEvent mode on.\nUse !exit to leave event mode.\n')
 			else:
@@ -504,92 +505,92 @@ while 0 == 0:
 			for item in events[loadedEvent]['item_modify']:
 				if item != 'steal':
 					if int(events[loadedEvent]['item_modify'][item]['rand']) < 0:
-						print('You lost ' + str(-1 * events[loadedEvent]['item_modify'][item]['rand']) + ' ' + item)
+						print('[You lost ' + str(-1 * events[loadedEvent]['item_modify'][item]['rand']) + ' ' + item + ']')
 					elif int(events[loadedEvent]['item_modify'][item]['rand']) > 0:
-						print('You got ' + str(events[loadedEvent]['item_modify'][item]['rand']) + ' ' + item)
+						print('[You got ' + str(events[loadedEvent]['item_modify'][item]['rand']) + ' ' + item + ']')
 					simmedEquipment[item] += events[loadedEvent]['item_modify'][item]['rand']
 					
 		if 'cargoAdd' in events[loadedEvent]:
 			simmedEquipment['cargo'].append(events[loadedEvent]['cargoAdd'])
-			print('You got a ' + events[loadedEvent]['cargoAdd'])
+			print('[You got a ' + events[loadedEvent]['cargoAdd'] + ']')
 					
 		if 'cargoRemove' in events[loadedEvent]:
 			del simmedEquipment['cargo'][simmedEquipment['cargo'].index(events[loadedEvent]['cargoRemove'])]
 					
 		if 'reveal_map' in events[loadedEvent]:
-			print('Your Map has been updated')
+			print('[Your Map has been updated]')
 					
 		if 'modifyPursuit ' in events[loadedEvent]:
 			if events[loadedEvent]['modifyPursuit'] < 0:
-				print('The rebels have been delayed for ' + str(events[loadedEvent]['modifyPursuit'] * -1) + ' jumps.')
+				print('[The rebels have been delayed for ' + str(events[loadedEvent]['modifyPursuit'] * -1) + ' jumps]')
 			if events[loadedEvent]['modifyPursuit'] > 0:
-				print('The rebels have advanced ' + str(events[loadedEvent]['modifyPursuit']) + ' jumps.')
+				print('[The rebels have advanced ' + str(events[loadedEvent]['modifyPursuit']) + ' jumps]')
 					
 		if 'secretSector ' in events[loadedEvent]:
-			print('Travelling to the secret sector.')
+			print('[Travelling to the secret sector]')
 			
 		if 'unlockShip' in events[loadedEvent]:
 			#placeholder
-			print('You\'ve unlocked the ship with id ' + events[loadedEvent]['unlockShip'])
+			print('[You\'ve unlocked the ship with id ' + events[loadedEvent]['unlockShip']+']')
 			
 		if 'environment' in events[loadedEvent]:
-			print('This beacon has a ' + events[loadedEvent]['environment'])
+			print('[This beacon has a ' + events[loadedEvent]['environment'] + ']')
 			
 		if 'boarders' in events[loadedEvent]:
 			if events[loadedEvent]['boarders']['class'] == 'random':
-				print(str(rand.randint(events[loadedEvent]['boarders']['min'], events[loadedEvent]['boarders']['max'])) + ' boarders have entered your ship!')
+				print('['+str(rand.randint(events[loadedEvent]['boarders']['min'], events[loadedEvent]['boarders']['max'])) + ' boarders have entered your ship]')
 			else:
-				print(str(rand.randint(events[loadedEvent]['boarders']['min'], events[loadedEvent]['boarders']['max'])) + ' ' + events[loadedEvent]['boarders']['class'] + ' have entered your ship!')
+				print('['+str(rand.randint(events[loadedEvent]['boarders']['min'], events[loadedEvent]['boarders']['max'])) + ' ' + events[loadedEvent]['boarders']['class'] + ' have entered your ship]')
 					
 		if 'store' in events[loadedEvent] and events[loadedEvent]['beacon'] != 'store':
-			print('A store is available here')
+			print('[A store is available here]')
 			
 		if 'beacon' in events[loadedEvent]:
-			print('This beacon has a ' + events[loadedEvent]['beacon'])
+			print('[This beacon has a ' + events[loadedEvent]['beacon'] + ']')
 			
 		if 'quest' in events[loadedEvent]:
 			quests.append(events[loadedEvent]['quest'])
-			print('A quest beacon has been added')
+			print('[A quest beacon has been added]')
 			
 		if 'crewMember' in events[loadedEvent]:
 			simmedEquipment['cargo'].append(events[loadedEvent]['crewMember']['class'])
-			print(events[loadedEvent]['name'] + ' has joined your crew. They are a ' + events[loadedEvent]['crewMember']['class'])
+			print('['+events[loadedEvent]['name'] + ' has joined your crew. They are a ' + events[loadedEvent]['crewMember']['class']+']')
 			
 		if 'crewTraitor' in events[loadedEvent]:
 			del simmedEquipment['cargo'][simmedEquipment[rand.randint(0, len(simmedEquipment))]]
-			print('One of your crew members have turned against you!')
+			print('[One of your crew members have turned against you!]')
 			
 		if 'removeCrew' in events[loadedEvent]:
 			if 'class' in events[loadedEvent]['removeCrew']:
 				if events[loadedEvent]['removeCrew']['class'] in simmedEquipment['cargo']:
 					if events[loadedEvent]['removeCrew']['clone'] != 'true' or 'clonebay' not in simmedEquipment['systems'].keys():
 						del simmedEquipment['cargo'][simmedEquipment['cargo'].index(events[loadedEvent]['removeCrew']['class'])]
-					print('Your ' + events[loadedEvent]['removeCrew']['class'] + 'has died.')
+					print('[Your ' + events[loadedEvent]['removeCrew']['class'] + 'has died.]')
 				else:
 					#may not how it acts in FTL
 					if events[loadedEvent]['removeCrew']['clone'] != 'true' or 'clonebay' not in simmedEquipment['systems'].keys():
 						del simmedEquipment['cargo'][simmedEquipment[rand.randint(0, len(simmedEquipment))]]
-					print('One of your crew members has died.')
+					print('[One of your crew members has died.]')
 			else:
 				if events[loadedEvent]['removeCrew']['clone'] != 'true' or 'clonebay' not in simmedEquipment['systems'].keys():
 					del simmedEquipment['cargo'][simmedEquipment[rand.randint(0, len(simmedEquipment))]]
-				print('One of your crew members has died.')
+				print('[One of your crew members has died.]')
 				
 		if 'status' in events[loadedEvent]:
 			limits = {'limit' : 'limited to', 'divide' : 'divided by', 'loss' : 'decreased by', 'clear' : 'cleared'}
 			if events[loadedEvent]['status']['target'] == 'player':
 				for system in events[loadedEvent]['status']['system']:
 					if events[loadedEvent]['status']['type'] == 'clear':
-						print('Your ' + system + '\'s status has been cleared.')
+						print('[Your ' + system + '\'s status has been cleared.]')
 					else:
-						print('Your ' + system + ' has been ' + limits[events[loadedEvent]['status']['type']] + events[loadedEvent]['status']['amount'] + ' levels.')
+						print('[Your ' + system + ' has been ' + limits[events[loadedEvent]['status']['type']] + events[loadedEvent]['status']['amount'] + ' levels.]')
 			
 			else:
 				for system in events[loadedEvent]['status']['system']:
 					if events[loadedEvent]['status']['type'] == 'clear':
-						print('Enemy\'s ' + system + '\'s status has been cleared.')
+						print('[Enemy\'s ' + system + '\'s status has been cleared.]')
 					else:
-						print('Enemy\'s ' + system + ' has been ' + limits[events[loadedEvent]['status']['type']] + events[loadedEvent]['status']['amount'] + ' levels.')
+						print('[Enemy\'s ' + system + ' has been ' + limits[events[loadedEvent]['status']['type']] + events[loadedEvent]['status']['amount'] + ' levels.]')
 					
 		if 'text' in events[loadedEvent]:
 			textLoaded = events[loadedEvent]['text']
@@ -692,7 +693,7 @@ while 0 == 0:
 					if 'removeCrew' in events[loadedEvent]:
 						print(events[loadedEvent]['removeCrew']['text'])
 						if events[loadedEvent]['removeCrew']['clone'] == 'true':
-							print('Your crew member has come back!\n')
+							print('[Your crew member has come back!]\n')
 						print('1. Continue...')
 						avaliabeCommands = ['!exit', '1']
 						command = '-1'
