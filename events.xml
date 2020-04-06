@@ -16,8 +16,12 @@ Do not remove the FTL Tag -->
 		<event>
 			<text>More stuff.</text>
 			<choice>
-				<text>It ends here.</text>
-				<event/>
+				<text>Here's some fuel.</text>
+				<event>
+					<item_modify steal="true">
+						<item type="fuel" min="2" max="3"/>
+					</item_modify>
+				</event>
 			</choice>
 		</event>
 	</choice>
@@ -28,9 +32,11 @@ Do not remove the FTL Tag -->
 	<choice req="doors" hidden="true" lvl="2">
 		<text>(Doors Subsystem) This would be blue</text>
 		<event>
-			<item_modify steal="true">
-				<item type="fuel" min="-3" max="-2"/>
-			</item_modify>
+			<text>Your crewmember has died!</text>
+			<removeCrew>
+				<clone>true</clone>
+				<text>Luckily you have a clonebay!</text>
+			</removeCrew>
 		</event>
 	</choice>
 </event>

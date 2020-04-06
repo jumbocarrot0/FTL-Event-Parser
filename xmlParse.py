@@ -17,12 +17,12 @@ def FTLEquipmentParse(data):
 						equipment['systems'][schild.tag] = int(schild.attrib['power'])
 			
 			if child.tag == 'weaponList':
-				equipment['missiles'] = child.attrib['missiles']
+				equipment['missiles'] = int(child.attrib['missiles'])
 				for wchild in child:
 					equipment['cargo'].append(wchild.attrib['name'])
 			
 			if child.tag == 'droneList':
-				equipment['drone parts'] = child.attrib['drones']
+				equipment['drone parts'] = int(child.attrib['drones'])
 				for wchild in child:
 					equipment['cargo'].append(wchild.attrib['name'])
 			
@@ -188,16 +188,21 @@ def FTLEventParse(data):
 							
 									
 				if echild.tag == 'removeCrew':
-					if 'clone' not in echild:
+				
+					tagchildren = []
+					for rchild in echild:
+						tagchildren.append(rchild.tag)
+					
+					if 'clone' not in tagchildren:
 						print('ERROR: <clone> tag not a child of <removeCrew> in event ' + eventNames[-1])
-					if 'text' not in echild:
+					if 'text' not in tagchildren:
 						print('ERROR: <text> tag not a child of <removeCrew> in event ' + eventNames[-1])
 						
-					if 'clone' not in echild and 'text' not in echild:
+					if 'clone' in tagchildren and 'text' in tagchildren:
 						events[eventNames[-1]]['removeCrew'] = {}
-						for rcchild in child:
-							events[eventNames[-1]]['removeCrew'][rchild.tag] = rchild.text
-							
+						for rchild2 in echild:
+							events[eventNames[-1]]['removeCrew'][rchild2.tag] = rchild2.text
+						
 						if 'class' in echild.attrib:
 							events[eventNames[-1]]['removeCrew']['class'] = echild.attrib['class']
 							
@@ -219,6 +224,31 @@ def FTLEventParse(data):
 							print('Event error: The event ' + eventNames[-1] + ' has an <item> tag with an unrecognisable attribute name.')
 					events[eventNames[-1]]['item_modify'] = item_modify
 
+				if echild.tag == 'status':
+					workCheck = True
+					for attribute in ['type', 'target', 'system', 'amount']:
+						if attribute not in echild.attrib:
+							workCheck = False
+							print('ERROR: ' + attribute + ' attribute not in <status> tag in event ' + eventNames[-1])
+							break
+					
+					if echild.attrib['type'] not in ['limit', 'divide', 'loss', 'clear']:
+						print('ERROR: unrecognised "type" attribute in <status> tag in event ' + eventNames[-1])
+						workCheck = False
+						
+					if type(echild.attrib['amount']) is not int:
+						if type(echild.attrib['amount']) is float:
+							print('Warning: in ' + eventNames[-1] + ' event, amount attribute in <status> tag a float value. Has been rounded down')
+						else:
+							print('ERROR: in ' + eventNames[-1] + ' event, amount attribute in <status> tag is not an integer.')
+							workCheck = False
+							
+					if workCheck is True:
+						events[eventNames[-1]]['status'] = {}
+						for attribute in ['type', 'target', 'system', 'amount']:
+							events[eventNames[-1]]['status'][attribute] = echild.attrib[attribute]
+						
+					
 
 				if echild.tag == 'choice':
 					events[eventNames[-1]]['choice ' + str(choiceNumber)] = {}
@@ -369,6 +399,7 @@ eventMode = False
 loadedEvent = -1
 loadedEventCmd = -1
 quests = []
+simmedEquipment = equipment
 			
 def eventEnd(quests):
 	global eventMode
@@ -408,7 +439,6 @@ while 0 == 0:
 
 	if eventMode is False:
 	
-		simmedEquipment = equipment
 	
 		command = input('>>> ')
 
@@ -432,6 +462,7 @@ while 0 == 0:
 				if loadedEventCmd not in quests and len(quests) > 0:
 					quests = []
 					print('Quest events cleared')
+					simmedEquipment = equipment
 				print('Event loaded.\nEvent mode on.\nUse !exit to leave event mode.\n')
 			else:
 				print('Invalid ID')
@@ -531,18 +562,34 @@ while 0 == 0:
 		if 'removeCrew' in events[loadedEvent]:
 			if 'class' in events[loadedEvent]['removeCrew']:
 				if events[loadedEvent]['removeCrew']['class'] in simmedEquipment['cargo']:
-					if events[loadedEvent]['clone'] != 'true' or 'clonebay' not in simmedEquipment['systems'].keys():
+					if events[loadedEvent]['removeCrew']['clone'] != 'true' or 'clonebay' not in simmedEquipment['systems'].keys():
 						del simmedEquipment['cargo'][simmedEquipment['cargo'].index(events[loadedEvent]['removeCrew']['class'])]
 					print('Your ' + events[loadedEvent]['removeCrew']['class'] + 'has died.')
 				else:
 					#may not how it acts in FTL
-					if events[loadedEvent]['clone'] != 'true' or 'clonebay' not in simmedEquipment['systems'].keys():
+					if events[loadedEvent]['removeCrew']['clone'] != 'true' or 'clonebay' not in simmedEquipment['systems'].keys():
 						del simmedEquipment['cargo'][simmedEquipment[rand.randint(0, len(simmedEquipment))]]
 					print('One of your crew members has died.')
 			else:
-				if events[loadedEvent]['clone'] != 'true' or 'clonebay' not in simmedEquipment['systems'].keys():
+				if events[loadedEvent]['removeCrew']['clone'] != 'true' or 'clonebay' not in simmedEquipment['systems'].keys():
 					del simmedEquipment['cargo'][simmedEquipment[rand.randint(0, len(simmedEquipment))]]
 				print('One of your crew members has died.')
+				
+		if 'status' in events[loadedEvent]:
+			limits = {'limit' : 'limited to', 'divide' : 'divided by', 'loss' : 'decreased by', 'clear' : 'cleared'}
+			if events[loadedEvent]['status']['target'] == 'player':
+				for system in events[loadedEvent]['status']['system']:
+					if events[loadedEvent]['status']['type'] == 'clear':
+						print('Your ' + system + '\'s status has been cleared.')
+					else:
+						print('Your ' + system + ' has been ' + limits[events[loadedEvent]['status']['type']] + events[loadedEvent]['status']['amount'] + ' levels.')
+			
+			else:
+				for system in events[loadedEvent]['status']['system']:
+					if events[loadedEvent]['status']['type'] == 'clear':
+						print('Enemy\'s ' + system + '\'s status has been cleared.')
+					else:
+						print('Enemy\'s ' + system + ' has been ' + limits[events[loadedEvent]['status']['type']] + events[loadedEvent]['status']['amount'] + ' levels.')
 					
 		if 'text' in events[loadedEvent]:
 			textLoaded = events[loadedEvent]['text']
@@ -643,7 +690,7 @@ while 0 == 0:
 				command = int(command) - 1
 				if events[loadedEvent]['choice ' + str(command)]['event'] == -1:
 					if 'removeCrew' in events[loadedEvent]:
-						print(events[loadedEvent]['removeCrew']['text'] + '\n')
+						print(events[loadedEvent]['removeCrew']['text'])
 						if events[loadedEvent]['removeCrew']['clone'] == 'true':
 							print('Your crew member has come back!\n')
 						print('1. Continue...')

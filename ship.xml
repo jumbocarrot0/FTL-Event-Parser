@@ -11,7 +11,7 @@ Unnecessary tags and attributes have been removed, including them does not affec
 		<pilot power="2" room="0" start="true"/>
 		<doors power="2" room="2" start="true"/>
 		<sensors power="2" room="3" start="true"/>
-		<medbay power="2" room="4" start="true"/>
+		<medbay power="2" room="4" start="false"/>
 		<oxygen power="2" room="13" start="true"/>
 		<shields power="8" room="5" start="true"/>
 		<engines power="5" room="14" start="true"/>
@@ -22,7 +22,7 @@ Unnecessary tags and attributes have been removed, including them does not affec
 		<hacking power="1" room="12" start="false"/>
 		<battery power="1" room="11" start="false"/>
 		<mind power="1" room="7" start="false"/>
-		<clonebay power="1" room="4" start="false" />
+		<clonebay power="1" room="4" start="true" />
 	</systemList>
 	<weaponList missiles="16">
 		<weapon name="MISSILES_2"/>
