@@ -70,7 +70,7 @@ def FTLEventParse(data):
 				eventNames.append(child.attrib['name'])
 				callableEvents.append(child.attrib['name'])
 			elif data == root:
-				print('Error: Unnamed top-level event.')
+				print('ERROR: Unnamed top-level event.')
 				continue
 			else:
 				eventNames.append(xmlParseReq[data])
@@ -81,14 +81,14 @@ def FTLEventParse(data):
 				events[eventNames[-1]] = {}
 			for echild in child:
 			
-				if child.tag == 'distressBeacon':
+				if echild.tag == 'distressBeacon':
 					events[eventNames[-1]]['beacon'] = echild.attrib['Distress Signal']
-				if child.tag == 'store':
+				if echild.tag == 'store':
 					events[eventNames[-1]]['store'] = echild.attrib['store']
-				if child.tag == 'repair':
+				if echild.tag == 'repair':
 					events[eventNames[-1]]['beacon'] = echild.attrib['Repair Station']
 			
-				if child.tag == 'quest' and 'event' in child.attrib:
+				if echild.tag == 'quest' and 'event' in echild.attrib:
 					events[eventNames[-1]]['quest'] = echild.attrib['event']
 					
 				if echild.tag == 'text':
@@ -98,7 +98,7 @@ def FTLEventParse(data):
 						if echild.attrib['id'] in text_ids:
 							events[eventNames[-1]]['text'] = [text_ids[echild.attrib['id']]]
 						else:
-							print('Error: id ' + echild.attrib['id'] + ' not found in ' + eventNames[-1])
+							print('ERROR: id ' + echild.attrib['id'] + ' not found in ' + eventNames[-1])
 							events[eventNames[-1]]['text'] = ['id ' + echild.attrib['id'] + ' not found']
 							
 					else:
@@ -107,37 +107,103 @@ def FTLEventParse(data):
 				if echild.tag == 'ship' and 'load' in echild.attrib:
 					events[eventNames[-1]]['ship'] = echild.attrib['load']
 
-				if child.tag in ['weapon', 'drone', 'augment']:
+				if echild.tag in ['weapon', 'drone', 'augment']:
 					if echild.attrib['name'] == 'RANDOM':
 						#placeholder for now
 						events[eventNames[-1]]['cargoAdd'] = echild.attrib['name']						
 					else:
 						events[eventNames[-1]]['cargoAdd'] = echild.attrib['name']
 
-				if child.tag == 'remove':
+				if echild.tag == 'remove':
 					if echild.attrib['name'] == 'RANDOM':
 						events[eventNames[-1]]['cargoRemove'] = echild.attrib['name']
 
-				if child.tag == 'reveal_map':
+				if echild.tag == 'reveal_map':
 					events[eventNames[-1]]['reveal_map'] = 'reveal_map'
 
-				if child.tag == 'modifyPursuit':
-					events[eventNames[-1]]['modifyPursuit'] = int(child.attrib['amount'])
+				if echild.tag == 'modifyPursuit':
+					events[eventNames[-1]]['modifyPursuit'] = int(echild.attrib['amount'])
 
-				if child.tag == 'secretSector':
+				if echild.tag == 'secretSector':
 					events[eventNames[-1]]['secretSector'] = 'secrectSector'
 
-				if child.tag == 'unlockShip':
-					events[eventNames[-1]]['unlockShip'] = child.attrib['id']
+				if echild.tag == 'unlockShip':
+					events[eventNames[-1]]['unlockShip'] = echild.attrib['id']
 
-				if child.tag == 'environment':
-					if child.attrib['type'] in ['nebula', 'asteroid', 'sun', 'storm', 'pulsar', 'PDS']:
-						events[eventNames[-1]]['type'] = child.attrib['type']
+				if echild.tag == 'environment':
+					if echild.attrib['type'] in ['nebula', 'asteroid', 'sun', 'storm', 'pulsar', 'PDS']:
+						events[eventNames[-1]]['type'] = echild.attrib['type']
 					else:
-						print('ERROR: unrecognised environmenttype in ' + eventNames[-1])
+						print('ERROR: unrecognised environment type in ' + eventNames[-1])
 
-				if child.tag == 'boarders':
-					events[eventNames[-1]]['boarders'] = {'class' : child.attrib['class'], 'min' : int(child.attrib['min']), 'max' : int(child.attrib['max'])}
+				if echild.tag == 'boarders':
+					events[eventNames[-1]]['boarders'] = {'class' : echild.attrib['class'], 'min' : int(echild.attrib['min']), 'max' : int(echild.attrib['max'])}
+
+				if echild.tag == 'crewMember':
+					if int(echild.attrib['amount']) < 1:
+						if echild.attrib['class'] == traitor:
+							if echild.attrib['amount'] == '-1':
+								events[eventNames[-1]]['crewTraitor'] = 'crewTraitor'
+							else:
+								print('ERROR: <crewMember> tag has class traitor and has amount that\'s not -1 in ' + eventNames[-1] + ' event.')
+						else:
+							print('Warning: <crewMember> tag with values 0 or less in ' + eventNames[-1] + ' event. Use the <removeCrew> tag to remove crew members, or class="traitor" to turn a crew member bad.')
+					else:
+						skills = ['weapons', 'shields', 'engines', 'pilot', 'combat', 'repair']
+						events[eventNames[-1]]['crewMember'] = {'class' : echild.attrib['class'], 'amount' : int(echild.attrib['amount'])}
+						if 'all_skills' in events[eventNames[-1]]['crewMember']:
+							if 0 < int(echild.attrib['all_skills']) <= 2:
+								if int(echild.attrib['all_skills']) == 0:
+									print('Advice: Setting a skill to zero in a <crewMember> tag is unnecessary, please remove.')
+									for skill in skills:
+										events[eventNames[-1]]['crewMember'][skill] = echild.attrib['all_skills']
+								else:
+									print('Warning: Skill in a <crewMember> tag in ' + eventNames[-1] + ' event is not between 0 and 2.')
+							else:
+								for skill in skills:
+									events[eventNames[-1]]['crewMember'][skill] = echild.attrib['all_skills']
+						else:
+							for skill in skills:
+								if skill in events[eventNames[-1]]['crewMember']:
+									if 0 < int(events[eventNames[-1]]['crewMember'].attrib[skill]) <= 2:
+										if int(events[eventNames[-1]]['crewMember'].attrib[skill]) == 0:
+											print('Advice: Setting a skill to zero in a <crewMember> tag is unnecessary, should be removed.')
+											events[eventNames[-1]]['crewMember'][skill] = echild.attrib[skill]
+										else:
+											print('Warning: Skill in a <crewMember> tag in ' + eventNames[-1] + ' event is not between 0 and 2.')
+									else:
+										events[eventNames[-1]]['crewMember'][skill] = echild.attrib[skill]
+								else:
+									events[eventNames[-1]]['crewMember'][skill] = 0
+						if 'id' in echild.attrib:
+							if echild.attrib['id'] in text_ids:
+								events[eventNames[-1]]['crewMember']['name'] = [text_ids[echild.attrib['id']]]
+							else:
+								print('ERROR: id ' + echild.attrib['id'] + ' not found in ' + eventNames[-1])
+								events[eventNames[-1]]['crewMember']['name'] = ['id ' + echild.attrib['id'] + ' not found']
+						elif echild.text != '':
+							events[eventNames[-1]]['crewMember']['name'] = echild.text
+						else:
+							events[eventNames[-1]]['crewMember']['name'] = 'Someone'
+							
+									
+				if echild.tag == 'removeCrew':
+					if 'clone' not in echild:
+						print('ERROR: <clone> tag not a child of <removeCrew> in event ' + eventNames[-1])
+					if 'text' not in echild:
+						print('ERROR: <text> tag not a child of <removeCrew> in event ' + eventNames[-1])
+						
+					if 'clone' not in echild and 'text' not in echild:
+						events[eventNames[-1]]['removeCrew'] = {}
+						for rcchild in child:
+							events[eventNames[-1]]['removeCrew'][rchild.tag] = rchild.text
+							
+						if 'class' in echild.attrib:
+							events[eventNames[-1]]['removeCrew']['class'] = echild.attrib['class']
+							
+						if events[eventNames[-1]]['removeCrew']['clone'] not in ['false', 'true']:
+							print('ERROR: <clone> child of <removeCrew> tag in ' + eventNames[-1] + ' event has a value that\'s not true or false.')
+							del events[eventNames[-1]]['removeCrew']
 
 				if echild.tag == 'item_modify':
 					# fuel, missiles, drone parts
@@ -200,9 +266,13 @@ def FTLEventParse(data):
 			
 					if choiceNumber >= 5:
 						print('Warning: ' + eventNames[-1] + ' has a lot of choice options. FTL may look funky with too many choices in an event.\nEither use choice requirements to make only a few appear at a time, or reduce the number of choices in your event.')
-				
+			
+			
 			if 'choice 0' not in events[eventNames[-1]] and 'text' in events[eventNames[-1]]:
-				events[eventNames[-1]]['choice 0'] = {'text': ['Continue'], 'event': -1}
+				events[eventNames[-1]]['choice 0'] = {'text': ['Continue'], 'event': -1}	
+			elif 'removeCrew' in events[eventNames[-1]]:
+				del events[eventNames[-1]]['removeCrew']
+				print('ERROR: <removeCrew> tag not used in ' + eventNames[-1] + ' event with other choice tags. <removeCrew> tag deleted in simulation\'s data.')
 
 
 def FTLTextListParse():
@@ -222,7 +292,7 @@ def errorCheck():
 	for event in events:
 		if 'text' in events[event]:
 			if type(events[event]['text']) is not list:
-				print('Error: Unidentified textList called by ' + event)
+				print('ERROR: Unidentified textList called by ' + event)
 				
 		choiceNumb = 0
 		while 0 == 0:
@@ -234,7 +304,7 @@ def errorCheck():
 		for choice in range(0, choiceNumb):
 			if events[event]['choice ' + str(choice)]['event'] != -1:
 				if events[event]['choice ' + str(choice)]['event'] not in eventNames:
-					print('Error: Unidentified eventList called by ' + event)
+					print('ERROR: Unidentified eventList called by ' + event)
 				
 
 tree = ET.parse('text_events.xml')
@@ -410,6 +480,7 @@ while 0 == 0:
 					
 		if 'cargoAdd' in events[loadedEvent]:
 			simmedEquipment['cargo'].append(events[loadedEvent]['cargoAdd'])
+			print('You got a ' + events[loadedEvent]['cargoAdd'])
 					
 		if 'cargoRemove' in events[loadedEvent]:
 			del simmedEquipment['cargo'][simmedEquipment['cargo'].index(events[loadedEvent]['cargoRemove'])]
@@ -419,9 +490,9 @@ while 0 == 0:
 					
 		if 'modifyPursuit ' in events[loadedEvent]:
 			if events[loadedEvent]['modifyPursuit'] < 0:
-				print('The rebels have been delayed for ' str(events[loadedEvent]['modifyPursuit'] * -1) + ' jumps.')
+				print('The rebels have been delayed for ' + str(events[loadedEvent]['modifyPursuit'] * -1) + ' jumps.')
 			if events[loadedEvent]['modifyPursuit'] > 0:
-				print('The rebels have advanced ' str(events[loadedEvent]['modifyPursuit']) + ' jumps.')
+				print('The rebels have advanced ' + str(events[loadedEvent]['modifyPursuit']) + ' jumps.')
 					
 		if 'secretSector ' in events[loadedEvent]:
 			print('Travelling to the secret sector.')
@@ -448,6 +519,30 @@ while 0 == 0:
 		if 'quest' in events[loadedEvent]:
 			quests.append(events[loadedEvent]['quest'])
 			print('A quest beacon has been added')
+			
+		if 'crewMember' in events[loadedEvent]:
+			simmedEquipment['cargo'].append(events[loadedEvent]['crewMember']['class'])
+			print(events[loadedEvent]['name'] + ' has joined your crew. They are a ' + events[loadedEvent]['crewMember']['class'])
+			
+		if 'crewTraitor' in events[loadedEvent]:
+			del simmedEquipment['cargo'][simmedEquipment[rand.randint(0, len(simmedEquipment))]]
+			print('One of your crew members have turned against you!')
+			
+		if 'removeCrew' in events[loadedEvent]:
+			if 'class' in events[loadedEvent]['removeCrew']:
+				if events[loadedEvent]['removeCrew']['class'] in simmedEquipment['cargo']:
+					if events[loadedEvent]['clone'] != 'true' or 'clonebay' not in simmedEquipment['systems'].keys():
+						del simmedEquipment['cargo'][simmedEquipment['cargo'].index(events[loadedEvent]['removeCrew']['class'])]
+					print('Your ' + events[loadedEvent]['removeCrew']['class'] + 'has died.')
+				else:
+					#may not how it acts in FTL
+					if events[loadedEvent]['clone'] != 'true' or 'clonebay' not in simmedEquipment['systems'].keys():
+						del simmedEquipment['cargo'][simmedEquipment[rand.randint(0, len(simmedEquipment))]]
+					print('One of your crew members has died.')
+			else:
+				if events[loadedEvent]['clone'] != 'true' or 'clonebay' not in simmedEquipment['systems'].keys():
+					del simmedEquipment['cargo'][simmedEquipment[rand.randint(0, len(simmedEquipment))]]
+				print('One of your crew members has died.')
 					
 		if 'text' in events[loadedEvent]:
 			textLoaded = events[loadedEvent]['text']
@@ -515,12 +610,15 @@ while 0 == 0:
 							if 'item_modify' in eventCheck:
 								for item in eventCheck['item_modify']:	
 									if item != 'steal':
-										choiceEffectText += str(eventCheck['item_modify'][item]['rand']) + ' ' + item + ', '
+										choiceEffectText += str(eventCheck['item_modify'][item]['rand']) + ' ' + item + '; '
 								if len(choiceEffectText) > 0:
 									choiceEffectText = choiceEffectText[:-2]
 									
 							if 'cargoAdd' in eventCheck:
-								choiceEffectText += 'Item: ' eventCheck['cargoAdd']
+								choiceEffectText += 'Item: ' + eventCheck['cargoAdd'] + '; '
+								
+							if 'crewMember' in eventCheck:
+								choiceEffectText += 'Crew: ' + eventCheck['crewMember']['name'] + ', ' + eventCheck['crewMember']['class'] + '; '
 					
 					if len(choiceEffectText) > 0:
 						choiceEffectText = '    [' + choiceEffectText + ']'
@@ -544,6 +642,17 @@ while 0 == 0:
 			else:
 				command = int(command) - 1
 				if events[loadedEvent]['choice ' + str(command)]['event'] == -1:
+					if 'removeCrew' in events[loadedEvent]:
+						print(events[loadedEvent]['removeCrew']['text'] + '\n')
+						if events[loadedEvent]['removeCrew']['clone'] == 'true':
+							print('Your crew member has come back!\n')
+						print('1. Continue...')
+						avaliabeCommands = ['!exit', '1']
+						command = '-1'
+						while command not in avaliabeCommands:
+							command = input('Enter choice number: ')
+						print('\n')
+					
 					eventEnd(quests)
 				else:
 					loadedEvent = events[loadedEvent]['choice ' + str(command)]['event']
