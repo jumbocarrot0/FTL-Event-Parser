@@ -463,6 +463,8 @@ while 0 == 0:
 					quests = []
 					print('Quest events cleared')
 					simmedEquipment = equipment
+				else:
+					del quests[quests.index(loadedEventCmd)]
 				print('Event loaded.\nEvent mode on.\nUse !exit to leave event mode.\n')
 			else:
 				print('Invalid ID')
