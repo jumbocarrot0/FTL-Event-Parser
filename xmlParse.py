@@ -82,11 +82,11 @@ def FTLEventParse(data):
 			for echild in child:
 			
 				if echild.tag == 'distressBeacon':
-					events[eventNames[-1]]['beacon'] = echild.attrib['Distress Signal']
+					events[eventNames[-1]]['beacon'] = 'Distress Signal'
 				if echild.tag == 'store':
-					events[eventNames[-1]]['store'] = echild.attrib['store']
+					events[eventNames[-1]]['store'] = 'store'
 				if echild.tag == 'repair':
-					events[eventNames[-1]]['beacon'] = echild.attrib['Repair Station']
+					events[eventNames[-1]]['beacon'] = 'Repair Station'
 			
 				if echild.tag == 'quest' and 'event' in echild.attrib:
 					events[eventNames[-1]]['quest'] = echild.attrib['event']
@@ -660,7 +660,7 @@ while 0 == 0:
 									if item != 'steal':
 										if -1 * events[eventCheck]['item_modify'][item]['rand'] > simmedEquipment[item]:
 											reqCheck = False
-											breakc
+											break
 										
 								if reqCheck is False:
 									noChoiceReq()
