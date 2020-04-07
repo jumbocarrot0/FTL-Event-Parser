@@ -22,6 +22,7 @@ Features to implement:
 - AutoReward tag (once I figure out how it works *precisely*)
 - Damage tag (kinda just forgot about it)
 - Make things nicer (such as not making a person race 'random'. This is hard without reading a big blueprints.xml file)
+- More expansive error checker
 
 
 The plan is once I can build a program to simulate an event from xml, then I can reverse the process and create a program that can create an event and export into xml.

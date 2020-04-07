@@ -226,7 +226,7 @@ def FTLEventParse(data):
 						elif imchild.attrib['type'] == 'drones':
 							item_modify['drone parts'] = {'min' : int(imchild.attrib['min']), 'max' : int(imchild.attrib['max']), 'rand' : -1}
 						else:
-							print('Event error: The event ' + eventNames[-1] + ' has an <item> tag with an unrecognisable attribute name.')
+							print('ERROR: The event ' + eventNames[-1] + ' has an <item> tag with an unrecognisable type attribute.')
 					events[eventNames[-1]]['item_modify'] = item_modify
 
 				if echild.tag == 'status':
@@ -236,16 +236,16 @@ def FTLEventParse(data):
 							workCheck = False
 							print('ERROR: ' + attribute + ' attribute not in <status> tag in event ' + eventNames[-1])
 							break
-					
-					if echild.attrib['type'] not in ['limit', 'divide', 'loss', 'clear']:
-						print('ERROR: unrecognised "type" attribute in <status> tag in event ' + eventNames[-1])
-						workCheck = False
 							
 					if workCheck is True:
-						events[eventNames[-1]]['status'] = {}
-						for attribute in ['type', 'target', 'system', 'amount']:
-							events[eventNames[-1]]['status'][attribute] = echild.attrib[attribute]
-						events[eventNames[-1]]['status']['amount'] = int(events[eventNames[-1]]['status']['amount'])
+						if echild.attrib['type'] not in ['limit', 'divide', 'loss', 'clear']:
+							print('ERROR: unrecognised "type" attribute in <status> tag in event ' + eventNames[-1])
+							workCheck = False
+						else:
+							events[eventNames[-1]]['status'] = {}
+							for attribute in ['type', 'target', 'system', 'amount']:
+								events[eventNames[-1]]['status'][attribute] = echild.attrib[attribute]
+							events[eventNames[-1]]['status']['amount'] = int(events[eventNames[-1]]['status']['amount'])
 						
 				if echild.tag == 'upgrade':
 					for attribute in ['system', 'amount']:
@@ -288,7 +288,10 @@ def FTLEventParse(data):
 							if 'load' in chochild.attrib:
 								events[eventNames[-1]]['choice ' + str(choiceNumber)]['text'] = chochild.attrib['load']
 							elif 'id' in chochild.attrib:
-								events[eventNames[-1]]['choice ' + str(choiceNumber)]['text'] = [text_ids[chochild.attrib['id']]]
+								if chochild.attrib['id'] in text_ids:
+									events[eventNames[-1]]['choice ' + str(choiceNumber)]['text'] = [text_ids[chochild.attrib['id']]]
+								else:
+									print('ERROR: id ' + chochild.attrib['id'] + ' not found in ' + eventNames[-1])	
 							else:
 								events[eventNames[-1]]['choice ' + str(choiceNumber)]['text'] = [chochild.text]
 						if chochild.tag == 'event':
@@ -335,7 +338,7 @@ def errorCheck():
 	for event in events:
 		if 'text' in events[event]:
 			if type(events[event]['text']) is not list:
-				print('ERROR: Unidentified textList called by ' + event)
+				print('ERROR: Unidentified textList ' + events[event]['text'] + ' called by ' + event)
 				
 		choiceNumb = 0
 		while 0 == 0:
@@ -347,7 +350,7 @@ def errorCheck():
 		for choice in range(0, choiceNumb):
 			if events[event]['choice ' + str(choice)]['event'] != -1:
 				if events[event]['choice ' + str(choice)]['event'] not in eventNames:
-					print('ERROR: Unidentified eventList called by ' + event)
+					print('ERROR: Unidentified eventList ' + events[event]['choice ' + str(choice)]['event'] + ' called by ' + event)
 				
 
 tree = ET.parse('text_events.xml')
