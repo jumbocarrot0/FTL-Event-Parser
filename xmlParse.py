@@ -428,6 +428,7 @@ def noChoiceReq():
 	global choiceNumb
 	global max_groupsSeen
 	if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false' and 'max_group' not in events[loadedEvent]['choice ' + str(choiceNumb)]:
+		textLoaded = events[loadedEvent]['choice ' + str(choiceNumb)]['text']
 		print('X. ' + rand.choice(textLoaded))
 		choicesShown.append(choiceNumb + 1)
 	if 'max_group' in events[loadedEvent]['choice ' + str(choiceNumb)]:
@@ -608,6 +609,7 @@ while 0 == 0:
 			#All non-hidden choices
 			choicesShown = []
 			max_groupsSeen = []
+			avaliabeCommands = ['!exit']
 			while 0 == 0:
 				if 'choice ' + str(choiceNumb) in events[loadedEvent]:
 					
@@ -684,13 +686,11 @@ while 0 == 0:
 					choicesShown.append(choiceNumb + 1)
 					textLoaded = events[loadedEvent]['choice ' + str(choiceNumb)]['text']
 					print(str(len(choicesShown)) + '. ' + rand.choice(textLoaded) + choiceEffectText)
+					avaliabeCommands.append(str(len(choicesShown)))
 					choicesSelectable.append(choiceNumb + 1)
 					choiceNumb += 1
 				else:
 					break
-			avaliabeCommands = ['!exit']
-			for x in range(1, len(choicesSelectable)+1):
-				avaliabeCommands.append(str(x))
 			command = '-1'
 			while command not in avaliabeCommands:
 				command = input('Enter choice number: ')
