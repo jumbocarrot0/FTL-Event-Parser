@@ -150,7 +150,12 @@ def FTLEventParse(data):
 							print('Warning: <crewMember> tag with values 0 or less in ' + eventNames[-1] + ' event. Use the <removeCrew> tag to remove crew members, or class="traitor" to turn a crew member bad.')
 					else:
 						skills = ['weapons', 'shields', 'engines', 'pilot', 'combat', 'repair']
-						events[eventNames[-1]]['crewMember'] = {'class' : echild.attrib['class'], 'amount' : int(echild.attrib['amount'])}
+						events[eventNames[-1]]['crewMember'] = {'amount' : int(echild.attrib['amount'])}
+						if 'class' in echild.attrib:
+							events[eventNames[-1]]['crewMember']['class'] = echild.attrib['class']
+						else:
+							events[eventNames[-1]]['crewMember']['class'] = 'random'
+							
 						if 'all_skills' in events[eventNames[-1]]['crewMember']:
 							if 0 < int(echild.attrib['all_skills']) <= 2:
 								if int(echild.attrib['all_skills']) == 0:
@@ -181,7 +186,7 @@ def FTLEventParse(data):
 							else:
 								print('ERROR: id ' + echild.attrib['id'] + ' not found in ' + eventNames[-1])
 								events[eventNames[-1]]['crewMember']['name'] = ['id ' + echild.attrib['id'] + ' not found']
-						elif echild.text != '':
+						elif type(echild.text) == 'NoneType' or echild.text == '':
 							events[eventNames[-1]]['crewMember']['name'] = echild.text
 						else:
 							events[eventNames[-1]]['crewMember']['name'] = 'Someone'
@@ -410,14 +415,14 @@ def eventEnd(quests):
 		eventMode = False
 		
 def item_modifyCalc(event):
-	if 'item_modify' in event:
-		for item in event['item_modify']:
+	if 'item_modify' in events[event]:
+		for item in events[event]['item_modify']:
 			if item != 'steal':
-				event['item_modify'][item]['rand'] = rand.randint(event['item_modify'][item]['min'], event['item_modify'][item]['max'])
+				events[event]['item_modify'][item]['rand'] = rand.randint(events[event]['item_modify'][item]['min'], events[event]['item_modify'][item]['max'])
 	
 def eventListCalc(event):
-	if 'eventList' in event:
-		event['rand'] = rand.randint(0, len(event['eventList']) - 1)
+	if 'eventList' in events[event]:
+		events[event]['rand'] = rand.choice(events[event]['eventList'])
 	
 def noChoiceReq():
 	global choiceNumb
@@ -498,7 +503,7 @@ while 0 == 0:
 	else:
 		
 		if 'eventList' in events[loadedEvent]:
-			loadedEvent = events[loadedEvent]['eventList'][events[loadedEvent]['rand']]
+			loadedEvent = events[loadedEvent]['rand']
 		
 		if 'item_modify' in events[loadedEvent]:
 			for item in events[loadedEvent]['item_modify']:
@@ -554,7 +559,9 @@ while 0 == 0:
 			
 		if 'crewMember' in events[loadedEvent]:
 			simmedEquipment['crew'].append(events[loadedEvent]['crewMember']['class'])
-			print('['+events[loadedEvent]['name'] + ' has joined your crew. They are a ' + events[loadedEvent]['crewMember']['class']+']')
+			print(events[loadedEvent]['crewMember']['name'])
+			print(events[loadedEvent]['crewMember']['class'])
+			print('['+events[loadedEvent]['crewMember']['name'] + ' has joined your crew. They are a ' + events[loadedEvent]['crewMember']['class']+']')
 			
 		if 'crewTraitor' in events[loadedEvent]:
 			del simmedEquipment['crew'][simmedEquipment[rand.randint(0, len(simmedEquipment))]]
@@ -607,13 +614,13 @@ while 0 == 0:
 					if events[loadedEvent]['choice ' + str(choiceNumb)]['event'] == -1:
 						eventCheck = -1
 					elif 'eventList' in events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]:
-						eventCheck = events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]
-						eventCheck = events[eventCheck['eventList'][eventCheck['rand']]]
+						eventCheck = events[loadedEvent]['choice ' + str(choiceNumb)]['event']
+						eventListCalc(eventCheck)
+						eventCheck = events[eventCheck]['rand']
 					else:
 						eventCheck = events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]
 				
-					if events[loadedEvent]['choice ' + str(choiceNumb)]['event'] != -1:
-						eventListCalc(eventCheck)
+					if eventCheck != -1:
 						item_modifyCalc(eventCheck)
 						
 					if 'max_group' in events[loadedEvent]['choice ' + str(choiceNumb)]:
@@ -646,12 +653,12 @@ while 0 == 0:
 					choiceEffectText = ''
 					
 					if eventCheck != -1:
-						if 'item_modify' in eventCheck:
-							if eventCheck['item_modify']['steal'] == 'false':
+						if 'item_modify' in events[eventCheck]:
+							if events[eventCheck]['item_modify']['steal'] == 'false':
 								reqCheck = True
-								for item in eventCheck['item_modify']:
+								for item in events[eventCheck]['item_modify']:
 									if item != 'steal':
-										if -1 * eventCheck['item_modify'][item]['rand'] > simmedEquipment[item]:
+										if -1 * events[eventCheck]['item_modify'][item]['rand'] > simmedEquipment[item]:
 											reqCheck = False
 											breakc
 										
@@ -660,21 +667,19 @@ while 0 == 0:
 									continue
 							
 						if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false':
-							if 'item_modify' in eventCheck:
-								for item in eventCheck['item_modify']:	
+							if 'item_modify' in events[eventCheck]:
+								for item in events[eventCheck]['item_modify']:	
 									if item != 'steal':
-										choiceEffectText += str(eventCheck['item_modify'][item]['rand']) + ' ' + item + '; '
-								if len(choiceEffectText) > 0:
-									choiceEffectText = choiceEffectText[:-2]
+										choiceEffectText += str(events[eventCheck]['item_modify'][item]['rand']) + ' ' + item + '; '
 									
-							if 'cargoAdd' in eventCheck:
-								choiceEffectText += 'Item: ' + eventCheck['cargoAdd'] + '; '
+							if 'cargoAdd' in events[eventCheck]:
+								choiceEffectText += 'Item: ' + events[eventCheck]['cargoAdd'] + '; '
 								
-							if 'crewMember' in eventCheck:
-								choiceEffectText += 'Crew: ' + eventCheck['crewMember']['name'] + ', ' + eventCheck['crewMember']['class'] + '; '
+							if 'crewMember' in events[eventCheck]:
+								choiceEffectText += 'Crew: ' + events[eventCheck]['crewMember']['name'] + ', ' + events[eventCheck]['crewMember']['class'] + '; '
 					
 					if len(choiceEffectText) > 0:
-						choiceEffectText = '    [' + choiceEffectText + ']'
+						choiceEffectText = '    [' + choiceEffectText[:-2] + ']'
 					
 					choicesShown.append(choiceNumb + 1)
 					textLoaded = events[loadedEvent]['choice ' + str(choiceNumb)]['text']

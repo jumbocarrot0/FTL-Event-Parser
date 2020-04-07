@@ -80,7 +80,8 @@ Do not remove the FTL Tag -->
 
 <eventList name="EXAMPLE_EVENTLIST">
 <event>
-	<text>This was possibility one of three!</text>
+	<text>This was possibility one of three! Here's a guy.</text>
+	<crewMember amount="1"/>
 </event>
 <event>
 	<item_modify>
