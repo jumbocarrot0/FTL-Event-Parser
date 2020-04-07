@@ -128,7 +128,7 @@ Do not remove the FTL Tag -->
 	</removeCrew>
 </event>
 
-<!-- doesn't work right now, damage tag not yet implemented -->
+<!-- doesn't work right now, damage tag not yet implemented in simulation
 <event name="TEST_EVENT">
 	<text>This looks good...</text>
 	<choice>
@@ -140,7 +140,7 @@ Do not remove the FTL Tag -->
 			<damage amount="1" system="shields" effect="all"/>
 		</event>
 	</choice>
-</event>
+</event> -->
 
 <event name="TEST_EVENT2">
 	<text>Limited systems!</text>
