@@ -1,0 +1,45 @@
+<!-- Required File for Parser -->
+
+<!-- This is the attributes of the player in the event simulation.
+Modify the shipBlueprint inside of the FTL Tag.
+Do not remove the FTL Tag 
+Unnecessary tags and attributes have been removed, including them does not affect anything. -->
+<FTL>
+
+<shipBlueprint>
+	<systemList>
+		<pilot power="2" room="0" start="true"/>
+		<doors power="2" room="2" start="true"/>
+		<sensors power="2" room="3" start="true"/>
+		<medbay power="2" room="4" start="false"/>
+		<oxygen power="2" room="13" start="true"/>
+		<shields power="8" room="5" start="true"/>
+		<engines power="5" room="14" start="true"/>
+		<weapons power="7" room="10" start="true"/>
+		<drones power="4" room="1" start="true"/>
+		<teleporter power="2" room="15"	start="true"/>
+		<cloaking power="2" room="8" start="true"/>
+		<hacking power="1" room="12" start="false"/>
+		<battery power="1" room="11" start="false"/>
+		<mind power="1" room="7" start="false"/>
+		<clonebay power="1" room="4" start="true" />
+	</systemList>
+	<weaponList missiles="16">
+		<weapon name="MISSILES_2"/>
+		<weapon name="LASER_BURST_3"/>
+		<weapon name="MISSILES_2"/>
+		<weapon name="LASER_BURST_3"/>
+	</weaponList>
+	<droneList drones="10">
+		<drone name="COMBAT_1"/>
+		<drone name="REPAIR"/>
+	</droneList>
+	<fuel amount="16" /> <!-- Custom tag -->
+	<scrap amount="30" /> <!-- Custom tag -->
+	<maxPower amount ="25"/>
+	<crewCount amount = "3" class="human"/>
+	<crewCount amount = "1" class="engi"/>
+	<aug name="CREW_STIMS"/>
+</shipBlueprint>
+
+</FTL>

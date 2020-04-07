@@ -16,8 +16,12 @@ Do not remove the FTL Tag -->
 		<event>
 			<text>More stuff.</text>
 			<choice>
-				<text>It ends here.</text>
-				<event/>
+				<text>Here's some fuel.</text>
+				<event>
+					<item_modify steal="true">
+						<item type="fuel" min="2" max="3"/>
+					</item_modify>
+				</event>
 			</choice>
 		</event>
 	</choice>
@@ -25,12 +29,14 @@ Do not remove the FTL Tag -->
 		<text>Loading Loading Loading</text>
 		<event load="EXAMPLE_EVENT_2"/>
 	</choice>
-	<choice req="human">
-		<text>(Human Crew) This will be blue</text>
+	<choice req="doors" hidden="true" lvl="2">
+		<text>(Doors Subsystem) This would be blue</text>
 		<event>
-			<item_modify>
-				<item type="fuel" min="-3" max="-2"/>
-			</item_modify>
+			<text>Your crewmember has died!</text>
+			<removeCrew>
+				<clone>true</clone>
+				<text>Luckily you have a clonebay!</text>
+			</removeCrew>
 		</event>
 	</choice>
 </event>
@@ -52,40 +58,116 @@ Do not remove the FTL Tag -->
 
 <event name="EXAMPLE_EVENT_3">
 	<text>Here's some text!</text>
-	<choice>
+	<choice req="mantis" max_group="0">
+		<text>Flip the coin!</text>
+		<event load="EXAMPLE_EVENTLIST"/>
+	</choice>
+	<choice max_group="0">
 		<text>Roll the dice!</text>
 		<event load="EXAMPLE_EVENTLIST"/>
 	</choice>
 </event>
 
+<event name="EXAMPLE_EVENT_QUEST">
+	<text>Go on a quest!</text>
+	<quest event="EXAMPLE_EVENT_QUEST_2"/>
+</event>
+
+<event name="EXAMPLE_EVENT_QUEST_2">
+	<text>Here's your destination, a pulsar!</text>
+	<environment type="pulsar"/>
+</event>
+
 <eventList name="EXAMPLE_EVENTLIST">
 <event>
-	<text>This was possibility one of three!</text>
+	<text>This was possibility one of three! Here's a guy.</text>
+	<crewMember amount="1"/>
 </event>
 <event>
+	<item_modify>
+		<item type="scrap" min="30" max="50"/>
+	</item_modify>
 	<text>This was possibility two of three. Here, have some scrap.</text>
 	<choice>
 		<text>Nice!</text>
-		<event>
-			<item_modify>
-				<item type="scrap" min="30" max="50"/>
-			</item_modify>
-		</event>
+		<event/>
 	</choice>
 </event>
 <event>
-	<text>This was possibility three of three. I'll take that scrap and turn it into materials!</text>
+	<item_modify steal="true">
+		<item type="scrap" min="-10" max="-5"/>
+		<item type="missiles" min="2" max="3"/>
+		<item type="drones" min="1" max="3"/>
+	</item_modify>
+	<text>This was possibility three of three. I've taken your scrap and turned it into materials!</text>
 	<choice>
 		<text>You have no choice in the matter.</text>
-		<event>
-			<item_modify>
-				<item type="scrap" min="-10" max="-5"/>
-				<item type="missiles" min="2" max="3"/>
-				<item type="drones" min="1" max="3"/>
-			</item_modify>
-		</event>
+		<event/>
 	</choice>
 </event>
 </eventList>
+
+<!-- these were copied from the game's files -->
+
+<event name="BOARDER_TEST">
+	<text>Oh no enemies!</text>
+	<boarders min="3" max="5" class="human"/>
+	<ship load="PIRATE"/>
+</event>
+
+<event name="REMOVAL_TEST">
+	<text>Oh no! Your drone is gone.</text>
+	<remove name="COMBAT_1"/>
+</event>
+
+<event name="CREW_DEAD_TEST">
+	<text>Oh no! Your crew is dead.</text>
+	<removeCrew>
+		<clone>false</clone>
+		<text>They're still dead!</text>
+	</removeCrew>
+</event>
+
+<!-- doesn't work right now, damage tag not yet implemented in simulation
+<event name="TEST_EVENT">
+	<text>This looks good...</text>
+	<choice>
+		<text id="continue"/>
+		<event>
+			<text>Kaboom ship damage!!</text>
+			<damage amount="5"/>
+			<damage amount="1" system="engines" effect="random"/>
+			<damage amount="1" system="shields" effect="all"/>
+		</event>
+	</choice>
+</event> -->
+
+<event name="TEST_EVENT2">
+	<text>Limited systems!</text>
+	<status type="limit" target="player" system="sensors" amount="1"/>
+	<status type="limit" target="player" system="doors" amount="1"/>
+	<status type="limit" target="player" system="engine" amount="1"/>
+	<status type="limit" target="player" system="weapons" amount="1"/>
+</event>
+
+<event name="FREE_NANO">
+	<text>FREE NANO!</text>
+	<augment name="NANO_MEDBAY"/>
+</event>
+
+<event name="FREE_AUG">
+	<text>FREE AUG!</text>
+	<augment name="RANDOM"/>
+</event>
+
+<event name="CRYSTAL_TEST">
+	<text>Testing Crystal Teleport</text>
+	<choice>
+		<text>Travel to the Crystal Sector</text>
+		<event>
+			<secretSector/>
+		</event>
+	</choice>
+</event>
 
 </FTL>
