@@ -12,7 +12,7 @@ Features so far:
 - Can interpret various beacon signals (store, distress and repair)
 - Simulation can interpret choice requirements
 - Has a custom-made command line with various commands
-- A basic error checker
+- Can return basic error messages
 
 Essentially it can handle the bulk of an event's structure, choices, randomisation, etc.
 
