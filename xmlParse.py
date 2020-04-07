@@ -399,6 +399,7 @@ FTLEquipmentParse(root)
 
 command_list = '''
 !exit - leave event mode or command line.
+!god - toggles god mode, which makes blue options act like they're always obtainable (doesn't ignore max_group)
 !help - brings up list of commands.
 !list - bring up a list of loadable events.
 !load [EVENT_ID] - load an event to play. Must be a named event or eventlist, not a sub-event.
@@ -418,6 +419,7 @@ loadedEvent = -1
 loadedEventCmd = -1
 quests = []
 simmedEquipment = equipment
+godMode = False
 			
 def eventEnd(quests):
 	global eventMode
@@ -462,6 +464,10 @@ while 0 == 0:
 
 		if command == '!exit':
 			break
+
+		if command == '!god':
+			godMode = not godMode
+			print('God mode: ' + str(godMode))
 
 		if command == '!help':
 			print(command_list)
@@ -628,7 +634,10 @@ while 0 == 0:
 						print('[Enemy\'s ' + system + '\'s status has been cleared.]')
 					else:
 						print('[Enemy\'s ' + system + ' has been ' + limits[events[loadedEvent]['status']['type']] + str(events[loadedEvent]['status']['amount']) + ' levels.]')
-					
+				
+		if godMode is True:
+			simmedEquipment = equipment
+				
 		if 'text' in events[loadedEvent]:
 			textLoaded = events[loadedEvent]['text']
 			print(rand.choice(textLoaded) + '\n')
@@ -667,35 +676,37 @@ while 0 == 0:
 						for x in range(int(events[loadedEvent]['choice ' + str(choiceNumb)]['lvl_range'][0]), int(events[loadedEvent]['choice ' + str(choiceNumb)]['lvl_range'][1])+1):
 							lvl_range.append(x)
 							
-						if events[loadedEvent]['choice ' + str(choiceNumb)]['req'] in simmedEquipment['systems'].keys():
-							if simmedEquipment['systems'][events[loadedEvent]['choice ' + str(choiceNumb)]['req']] not in lvl_range:
-								noChoiceReq()
-								continue
-							
-						elif events[loadedEvent]['choice ' + str(choiceNumb)]['req'] in simmedEquipment['cargo']:
-							if list(simmedEquipment['cargo']).count(events[loadedEvent]['choice ' + str(choiceNumb)]['req']) not in lvl_range:
-								noChoiceReq()
-								continue
+						if godMode is False:
+							if events[loadedEvent]['choice ' + str(choiceNumb)]['req'] in simmedEquipment['systems'].keys():
+								if simmedEquipment['systems'][events[loadedEvent]['choice ' + str(choiceNumb)]['req']] not in lvl_range:
+									noChoiceReq()
+									continue
 								
-						elif list(simmedEquipment['crew']).count(events[loadedEvent]['choice ' + str(choiceNumb)]['req']) not in lvl_range:
-							noChoiceReq()
-							continue
+							elif events[loadedEvent]['choice ' + str(choiceNumb)]['req'] in simmedEquipment['cargo']:
+								if list(simmedEquipment['cargo']).count(events[loadedEvent]['choice ' + str(choiceNumb)]['req']) not in lvl_range:
+									noChoiceReq()
+									continue
+									
+							elif list(simmedEquipment['crew']).count(events[loadedEvent]['choice ' + str(choiceNumb)]['req']) not in lvl_range:
+								noChoiceReq()
+								continue
 					
 					choiceEffectText = ''
 					
 					if eventCheck != -1:
 						if 'item_modify' in events[eventCheck]:
-							if events[eventCheck]['item_modify']['steal'] == 'false':
-								reqCheck = True
-								for item in events[eventCheck]['item_modify']:
-									if item != 'steal':
-										if -1 * events[eventCheck]['item_modify'][item]['rand'] > simmedEquipment[item]:
-											reqCheck = False
-											break
-										
-								if reqCheck is False:
-									noChoiceReq()
-									continue
+							if godMode is False:
+								if events[eventCheck]['item_modify']['steal'] == 'false':
+									reqCheck = True
+									for item in events[eventCheck]['item_modify']:
+										if item != 'steal':
+											if -1 * events[eventCheck]['item_modify'][item]['rand'] > simmedEquipment[item]:
+												reqCheck = False
+												break
+											
+									if reqCheck is False:
+										noChoiceReq()
+										continue
 							
 						if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false':
 							if 'item_modify' in events[eventCheck]:
