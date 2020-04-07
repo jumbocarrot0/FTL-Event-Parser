@@ -618,7 +618,7 @@ while 0 == 0:
 						eventListCalc(eventCheck)
 						eventCheck = events[eventCheck]['rand']
 					else:
-						eventCheck = events[events[loadedEvent]['choice ' + str(choiceNumb)]['event']]
+						eventCheck = events[loadedEvent]['choice ' + str(choiceNumb)]['event']
 				
 					if eventCheck != -1:
 						item_modifyCalc(eventCheck)
