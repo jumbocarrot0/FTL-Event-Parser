@@ -1,6 +1,10 @@
 # FTL-Event-Parser
 A program to read XML code from the game FTL:Faster Than Light and create an event simulation.
 
+How to use:
+This program draws data from the events.xml and ship.xml files included. 
+events.xml is where you include any events you want to simulate. Some example have been provided, most of which are test events found inside FTL. Anything that you include in this file must be within the FTL tag.
+ship.xml contains the equipment of the player ship in the simulator, mainly for checks against blue options. This file contains one shipBlueprint tag, largely resembing the shipBlueprint of a player ship with some extra tags for fuel and scrap count.
 
 Features so far:
 - Can interpret events from a file and load them in a simulation
