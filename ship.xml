@@ -31,7 +31,7 @@ Unnecessary tags and attributes have been removed, including them does not affec
 		<weapon name="LASER_BURST_3"/>
 	</weaponList>
 	<droneList drones="10">
-		<drone name="DRONE_BEAM"/>
+		<drone name="COMBAT_1"/>
 		<drone name="REPAIR"/>
 	</droneList>
 	<fuel amount="16" /> <!-- Custom tag -->

@@ -5,7 +5,7 @@ events = {}
 eventNames = []
 callableEvents = []
 xmlParseReq = {}
-equipment = {'systems' : {}, 'cargo' : [], 'missiles' : 0, 'drone parts' : 0, 'fuel' : 0, 'scrap' : 0, }
+equipment = {'systems' : {}, 'crew' : [], 'cargo' : [], 'missiles' : 0, 'drone parts' : 0, 'fuel' : 0, 'scrap' : 0, }
 
 def FTLEquipmentParse(data):
 	global equipment
@@ -40,7 +40,7 @@ def FTLEquipmentParse(data):
 				
 			if child.tag == 'crewCount':
 				for x in range(0, int(child.attrib['amount'])):
-					equipment['cargo'].append(child.attrib['class'])
+					equipment['crew'].append(child.attrib['class'])
 				
 
 def FTLEventTextParse(data):
@@ -235,18 +235,12 @@ def FTLEventParse(data):
 					if echild.attrib['type'] not in ['limit', 'divide', 'loss', 'clear']:
 						print('ERROR: unrecognised "type" attribute in <status> tag in event ' + eventNames[-1])
 						workCheck = False
-						
-					if type(echild.attrib['amount']) is not int:
-						if type(echild.attrib['amount']) is float:
-							print('Warning: in ' + eventNames[-1] + ' event, amount attribute in <status> tag a float value. Has been rounded down')
-						else:
-							print('ERROR: in ' + eventNames[-1] + ' event, amount attribute in <status> tag is not an integer.')
-							workCheck = False
 							
 					if workCheck is True:
 						events[eventNames[-1]]['status'] = {}
 						for attribute in ['type', 'target', 'system', 'amount']:
 							events[eventNames[-1]]['status'][attribute] = echild.attrib[attribute]
+						events[eventNames[-1]]['status']['amount'] = int(events[eventNames[-1]]['status']['amount'])
 						
 					
 
@@ -381,12 +375,13 @@ FTLEquipmentParse(root)
 
 
 command_list = '''
-!eventList - bring up a list of loadable events.
 !exit - leave event mode or command line.
 !help - brings up list of commands.
+!list - bring up a list of loadable events.
 !load [EVENT_ID] - load an event to play. Must be a named event or eventlist, not a sub-event.
 !qlist - bring up a list of loaded quest events.
 !qload - load a random quest event to play.
+!rawdata - print the raw data for every event. 
 !reload - reloaded previously played event.
 !ship - show simulated ship details
 '''
@@ -433,7 +428,6 @@ def noChoiceReq():
 	if 'max_group' in events[loadedEvent]['choice ' + str(choiceNumb)]:
 		max_groupsSeen = max_groupsSeen[:-1]
 	choiceNumb += 1
-	
 
 while 0 == 0:
 
@@ -442,15 +436,15 @@ while 0 == 0:
 	
 		command = input('>>> ')
 
-		if command == '!eventList':
-			for name in callableEvents:
-				print(name)
-
 		if command == '!exit':
 			break
 
 		if command == '!help':
 			print(command_list)
+
+		if command == '!list':
+			for name in callableEvents:
+				print(name)
 
 		if command[:5] == '!load':
 			if command[6:] in callableEvents:
@@ -463,7 +457,7 @@ while 0 == 0:
 					quests = []
 					print('Quest events cleared')
 					simmedEquipment = equipment
-				else:
+				elif len(quests) > 0:
 					del quests[quests.index(loadedEventCmd)]
 				print('Event loaded.\nEvent mode on.\nUse !exit to leave event mode.\n')
 			else:
@@ -485,6 +479,9 @@ while 0 == 0:
 				print('Random quest event loaded.\nEvent mode on.\nUse !exit to leave event mode.\n')
 			else:
 				print('No quest events are saved.')
+				
+		if command == '!rawdata':
+			print(events)
 
 		if command == '!reload':
 			loadedEvent = loadedEventCmd
@@ -518,17 +515,18 @@ while 0 == 0:
 					
 		if 'cargoRemove' in events[loadedEvent]:
 			del simmedEquipment['cargo'][simmedEquipment['cargo'].index(events[loadedEvent]['cargoRemove'])]
+			print('[Your ' + events[loadedEvent]['cargoAdd'] + ' has been removed]')
 					
 		if 'reveal_map' in events[loadedEvent]:
 			print('[Your Map has been updated]')
 					
-		if 'modifyPursuit ' in events[loadedEvent]:
+		if 'modifyPursuit' in events[loadedEvent]:
 			if events[loadedEvent]['modifyPursuit'] < 0:
 				print('[The rebels have been delayed for ' + str(events[loadedEvent]['modifyPursuit'] * -1) + ' jumps]')
 			if events[loadedEvent]['modifyPursuit'] > 0:
 				print('[The rebels have advanced ' + str(events[loadedEvent]['modifyPursuit']) + ' jumps]')
 					
-		if 'secretSector ' in events[loadedEvent]:
+		if 'secretSector' in events[loadedEvent]:
 			print('[Travelling to the secret sector]')
 			
 		if 'unlockShip' in events[loadedEvent]:
@@ -555,44 +553,44 @@ while 0 == 0:
 			print('[A quest beacon has been added]')
 			
 		if 'crewMember' in events[loadedEvent]:
-			simmedEquipment['cargo'].append(events[loadedEvent]['crewMember']['class'])
+			simmedEquipment['crew'].append(events[loadedEvent]['crewMember']['class'])
 			print('['+events[loadedEvent]['name'] + ' has joined your crew. They are a ' + events[loadedEvent]['crewMember']['class']+']')
 			
 		if 'crewTraitor' in events[loadedEvent]:
-			del simmedEquipment['cargo'][simmedEquipment[rand.randint(0, len(simmedEquipment))]]
+			del simmedEquipment['crew'][simmedEquipment[rand.randint(0, len(simmedEquipment))]]
 			print('[One of your crew members have turned against you!]')
 			
 		if 'removeCrew' in events[loadedEvent]:
 			if 'class' in events[loadedEvent]['removeCrew']:
-				if events[loadedEvent]['removeCrew']['class'] in simmedEquipment['cargo']:
+				if events[loadedEvent]['removeCrew']['class'] in simmedEquipment['crew']:
 					if events[loadedEvent]['removeCrew']['clone'] != 'true' or 'clonebay' not in simmedEquipment['systems'].keys():
-						del simmedEquipment['cargo'][simmedEquipment['cargo'].index(events[loadedEvent]['removeCrew']['class'])]
+						del simmedEquipment['crew'][simmedEquipment['crew'].index(events[loadedEvent]['removeCrew']['class'])]
 					print('[Your ' + events[loadedEvent]['removeCrew']['class'] + 'has died.]')
 				else:
-					#may not how it acts in FTL
+					#may not be how it acts in FTL
 					if events[loadedEvent]['removeCrew']['clone'] != 'true' or 'clonebay' not in simmedEquipment['systems'].keys():
-						del simmedEquipment['cargo'][simmedEquipment[rand.randint(0, len(simmedEquipment))]]
+						del simmedEquipment['crew'][rand.randint(0, len(simmedEquipment['crew']))]
 					print('[One of your crew members has died.]')
 			else:
 				if events[loadedEvent]['removeCrew']['clone'] != 'true' or 'clonebay' not in simmedEquipment['systems'].keys():
-					del simmedEquipment['cargo'][simmedEquipment[rand.randint(0, len(simmedEquipment))]]
+					del simmedEquipment['crew'][rand.randint(0, len(simmedEquipment['crew']))]
 				print('[One of your crew members has died.]')
 				
 		if 'status' in events[loadedEvent]:
-			limits = {'limit' : 'limited to', 'divide' : 'divided by', 'loss' : 'decreased by', 'clear' : 'cleared'}
+			limits = {'limit' : 'limited to ', 'divide' : 'divided by ', 'loss' : 'decreased by ', 'clear' : 'cleared '}
 			if events[loadedEvent]['status']['target'] == 'player':
 				for system in events[loadedEvent]['status']['system']:
 					if events[loadedEvent]['status']['type'] == 'clear':
 						print('[Your ' + system + '\'s status has been cleared.]')
 					else:
-						print('[Your ' + system + ' has been ' + limits[events[loadedEvent]['status']['type']] + events[loadedEvent]['status']['amount'] + ' levels.]')
+						print('[Your ' + system + ' has been ' + limits[events[loadedEvent]['status']['type']] + str(events[loadedEvent]['status']['amount']) + ' levels.]')
 			
 			else:
 				for system in events[loadedEvent]['status']['system']:
 					if events[loadedEvent]['status']['type'] == 'clear':
 						print('[Enemy\'s ' + system + '\'s status has been cleared.]')
 					else:
-						print('[Enemy\'s ' + system + ' has been ' + limits[events[loadedEvent]['status']['type']] + events[loadedEvent]['status']['amount'] + ' levels.]')
+						print('[Enemy\'s ' + system + ' has been ' + limits[events[loadedEvent]['status']['type']] + str(events[loadedEvent]['status']['amount']) + ' levels.]')
 					
 		if 'text' in events[loadedEvent]:
 			textLoaded = events[loadedEvent]['text']
@@ -636,7 +634,12 @@ while 0 == 0:
 								noChoiceReq()
 								continue
 							
-						elif list(simmedEquipment['cargo']).count(events[loadedEvent]['choice ' + str(choiceNumb)]['req']) not in lvl_range:
+						elif events[loadedEvent]['choice ' + str(choiceNumb)]['req'] in simmedEquipment['cargo']:
+							if list(simmedEquipment['cargo']).count(events[loadedEvent]['choice ' + str(choiceNumb)]['req']) not in lvl_range:
+								noChoiceReq()
+								continue
+								
+						elif list(simmedEquipment['crew']).count(events[loadedEvent]['choice ' + str(choiceNumb)]['req']) not in lvl_range:
 							noChoiceReq()
 							continue
 					

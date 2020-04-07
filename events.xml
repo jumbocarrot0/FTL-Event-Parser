@@ -106,4 +106,67 @@ Do not remove the FTL Tag -->
 </event>
 </eventList>
 
+<!-- these were copied from the game's files -->
+
+<event name="BOARDER_TEST">
+	<text>Oh no enemies!</text>
+	<boarders min="3" max="5" class="human"/>
+	<ship load="PIRATE"/>
+</event>
+
+<event name="REMOVAL_TEST">
+	<text>Oh no! Your drone is gone.</text>
+	<remove name="COMBAT_1"/>
+</event>
+
+<event name="CREW_DEAD_TEST">
+	<text>Oh no! Your crew is dead.</text>
+	<removeCrew>
+		<clone>false</clone>
+		<text>They're still dead!</text>
+	</removeCrew>
+</event>
+
+<!-- doesn't work right now, damage tag not yet implemented -->
+<event name="TEST_EVENT">
+	<text>This looks good...</text>
+	<choice>
+		<text id="continue"/>
+		<event>
+			<text>Kaboom ship damage!!</text>
+			<damage amount="5"/>
+			<damage amount="1" system="engines" effect="random"/>
+			<damage amount="1" system="shields" effect="all"/>
+		</event>
+	</choice>
+</event>
+
+<event name="TEST_EVENT2">
+	<text>Limited systems!</text>
+	<status type="limit" target="player" system="sensors" amount="1"/>
+	<status type="limit" target="player" system="doors" amount="1"/>
+	<status type="limit" target="player" system="engine" amount="1"/>
+	<status type="limit" target="player" system="weapons" amount="1"/>
+</event>
+
+<event name="FREE_NANO">
+	<text>FREE NANO!</text>
+	<augment name="NANO_MEDBAY"/>
+</event>
+
+<event name="FREE_AUG">
+	<text>FREE AUG!</text>
+	<augment name="RANDOM"/>
+</event>
+
+<event name="CRYSTAL_TEST">
+	<text>Testing Crystal Teleport</text>
+	<choice>
+		<text>Travel to the Crystal Sector</text>
+		<event>
+			<secretSector/>
+		</event>
+	</choice>
+</event>
+
 </FTL>
