@@ -445,7 +445,7 @@ def eventListCalc(event):
 def noChoiceReq():
 	global choiceNumb
 	global max_groupsSeen
-	if events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false' and 'max_group' not in events[loadedEvent]['choice ' + str(choiceNumb)]:
+	if 'req' not in events[loadedEvent]['choice ' + str(choiceNumb)] and events[loadedEvent]['choice ' + str(choiceNumb)]['hidden'] == 'false' and 'max_group' not in events[loadedEvent]['choice ' + str(choiceNumb)]:
 		textLoaded = events[loadedEvent]['choice ' + str(choiceNumb)]['text']
 		print('X. ' + rand.choice(textLoaded))
 		choicesShown.append(choiceNumb + 1)
