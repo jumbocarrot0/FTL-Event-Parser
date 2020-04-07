@@ -19,4 +19,5 @@ Essentially it can handle the bulk of an event's structure, choices, randomisati
 
 Features to implement:
 - Ship events (surrenders, dead crew, etc.)
-- AutoReward tag (one I figure out how it works precisely)
+- AutoReward tag (once I figure out how it works *precisely*)
+- Damage tag (kinda just forgot about it)
