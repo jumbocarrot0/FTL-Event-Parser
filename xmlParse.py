@@ -247,7 +247,20 @@ def FTLEventParse(data):
 							events[eventNames[-1]]['status'][attribute] = echild.attrib[attribute]
 						events[eventNames[-1]]['status']['amount'] = int(events[eventNames[-1]]['status']['amount'])
 						
-					
+				if echild.tag == 'upgrade':
+					for attribute in ['system', 'amount']:
+						if attribute not in echild.attrib:
+							workCheck = False
+							print('ERROR: ' + attribute + ' attribute not in <upgrade> tag in event ' + eventNames[-1])
+							break
+					events[eventNames[-1]]['upgrade'] = {'system' : echild.attrib['system'], 'amount' : int(echild.attrib['amount'])}
+						
+				if echild.tag == 'system':
+					if 'name' not in echild.attrib:
+						workCheck = False
+						print('ERROR: name attribute not in <system> tag in event ' + eventNames[-1])
+						break
+					events[eventNames[-1]]['system'] = {'name' : echild.attrib['name']}
 
 				if echild.tag == 'choice':
 					events[eventNames[-1]]['choice ' + str(choiceNumber)] = {}
@@ -294,7 +307,8 @@ def FTLEventParse(data):
 					choiceNumber += 1
 			
 					if choiceNumber >= 5:
-						print('Warning: ' + eventNames[-1] + ' has a lot of choice options. FTL may look funky with too many choices in an event.\nEither use choice requirements to make only a few appear at a time, or reduce the number of choices in your event.')
+						pass
+						#print('Warning: ' + eventNames[-1] + ' has a lot of choice options. FTL may look funky with too many choices in an event.\nEither use choice requirements to make only a few appear at a time, or reduce the number of choices in your event.')
 			
 			
 			if 'choice 0' not in events[eventNames[-1]] and 'text' in events[eventNames[-1]]:
@@ -518,6 +532,17 @@ while 0 == 0:
 		if 'cargoAdd' in events[loadedEvent]:
 			simmedEquipment['cargo'].append(events[loadedEvent]['cargoAdd'])
 			print('[You got a ' + events[loadedEvent]['cargoAdd'] + ']')
+					
+		if 'upgrade' in events[loadedEvent]:
+			simmedEquipment['systems'][events[loadedEvent]['upgrade']['system']] += events[loadedEvent]['upgrade']['amount']
+			print('[Your ' + events[loadedEvent]['upgrade']['system'] + 'has been upgraded ' + str(events[loadedEvent]['upgrade']['amount']) + ' times]')
+					
+		if 'system' in events[loadedEvent]:
+			if events[loadedEvent]['system']['name'] == 'shields':
+				simmedEquipment['systems'][events[loadedEvent]['system']['name']] = 2
+			else:
+				simmedEquipment['systems'][events[loadedEvent]['system']['name']] = 1
+			print('[You got a ' + events[loadedEvent]['system']['name'] + ' system]')
 					
 		if 'cargoRemove' in events[loadedEvent]:
 			del simmedEquipment['cargo'][simmedEquipment['cargo'].index(events[loadedEvent]['cargoRemove'])]

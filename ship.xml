@@ -35,7 +35,7 @@ Unnecessary tags and attributes have been removed, including them does not affec
 		<drone name="REPAIR"/>
 	</droneList>
 	<fuel amount="16" /> <!-- Custom tag -->
-	<scrap amount="30" /> <!-- Custom tag -->
+	<scrap amount="1000" /> <!-- Custom tag -->
 	<maxPower amount ="25"/>
 	<crewCount amount = "3" class="human"/>
 	<crewCount amount = "1" class="engi"/>
