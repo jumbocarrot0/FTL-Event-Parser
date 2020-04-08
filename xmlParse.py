@@ -2,6 +2,7 @@
 import xml.etree.ElementTree as ET
 import random as rand
 
+ships = {}
 events = {}
 eventNames = []
 callableEvents = []
@@ -51,6 +52,25 @@ def FTLEventTextParse(data):
 			text_ids[child.attrib['name']] = child.text
 		
 	return text_ids
+	
+def FTLShipParse(data):
+	for child in data:
+		if child.tag == 'ship':
+			if 'name' in child.attrib:
+				ships[child.attrib['name']] = {}
+				
+				for schild in child:
+					if schild.tag in ['surrender', 'escape', 'destroyed', 'deadCrew', 'gotaway']:
+						ships[child.attrib['name']][schild.tag] = {}
+						if 'load' in schild.attrib:
+							ships[child.attrib['name']][schild.tag] = {'load' : schild.attrib['load']}
+						else:
+							ships[child.attrib['name']][schild.tag] = {'load' : child.attrib['name'] + '_' + schild.tag.upper()}
+							xmlParseReq[child] = child.attrib['name']
+						
+				
+			else:
+				print('ERROR: Unnamed top level ship tag.')
 
 def FTLEventParse(data):
 	#print(data)
@@ -64,7 +84,7 @@ def FTLEventParse(data):
 				for x in range(0, len(child)):
 					events[child.attrib['name']]['eventList'].append(child.attrib['name'] + '_e' + str(x))
 
-		if child.tag == 'event':
+		if child.tag in ['event', 'surrender', 'escape', 'destroyed', 'deadCrew', 'gotaway']:
 			choiceNumber = 0
 			if 'name' in child.attrib and data == root:
 				events[child.attrib['name']] = {}
@@ -73,6 +93,9 @@ def FTLEventParse(data):
 			elif data == root:
 				print('ERROR: Unnamed top-level event.')
 				continue
+			elif data.tag == 'ship':
+				eventNames[-1] = data.attrib['name'] + '_' + child.tag.upper()
+				events[eventNames[-1]] = {}
 			else:
 				eventNames.append(xmlParseReq[data])
 				number = 0
@@ -99,14 +122,29 @@ def FTLEventParse(data):
 						if echild.attrib['id'] in text_ids:
 							events[eventNames[-1]]['text'] = [text_ids[echild.attrib['id']]]
 						else:
-							print('ERROR: id ' + echild.attrib['id'] + ' not found in ' + eventNames[-1])
+							print('ERROR: ID "' + echild.attrib['id'] + '" not found in ' + eventNames[-1])
 							events[eventNames[-1]]['text'] = ['id ' + echild.attrib['id'] + ' not found']
 							
 					else:
 						events[eventNames[-1]]['text'] = [echild.text]
 
-				if echild.tag == 'ship' and 'load' in echild.attrib:
-					events[eventNames[-1]]['ship'] = echild.attrib['load']
+				if echild.tag == 'ship':
+					events[eventNames[-1]]['ship'] = {}
+					if 'load' in echild.attrib:
+						if echild.attrib['load'] in ships:
+							events[eventNames[-1]]['ship']['load'] = echild.attrib['load']
+						else:
+							print('ERROR: Unidentified ship ID in a <ship> tag\'s load attribute in event ' + eventNames[-1])
+					if 'hostile' in echild.attrib:
+						if echild.attrib['hostile'] not in ['false', 'true']:
+							print('ERROR: Hostile attribute in <ship> tag neither "true" nor "false" in event ' + eventNames[-1])
+						else:
+							events[eventNames[-1]]['ship']['hostile'] = echild.attrib['hostile']
+					else:
+						events[eventNames[-1]]['ship']['hostile'] = 'false'
+						
+					if 'load' not in echild.attrib and 'hostile' not in echild.attrib:
+						print('ERROR: <ship> tag used in ' + eventNames[-1] + ' event without either a hostile or load tag.')
 
 				if echild.tag in ['weapon', 'drone', 'augment']:
 					if echild.attrib['name'] == 'RANDOM':
@@ -186,7 +224,7 @@ def FTLEventParse(data):
 								events[eventNames[-1]]['crewMember']['name'] = [text_ids[echild.attrib['id']]]
 							else:
 								print('ERROR: id ' + echild.attrib['id'] + ' not found in ' + eventNames[-1])
-								events[eventNames[-1]]['crewMember']['name'] = ['id ' + echild.attrib['id'] + ' not found']
+								events[eventNames[-1]]['crewMember']['name'] = ['id "' + echild.attrib['id'] + '" not found']
 						elif type(echild.text) == 'NoneType' or echild.text == '':
 							events[eventNames[-1]]['crewMember']['name'] = echild.text
 						else:
@@ -292,7 +330,7 @@ def FTLEventParse(data):
 								if chochild.attrib['id'] in text_ids:
 									events[eventNames[-1]]['choice ' + str(choiceNumber)]['text'] = [text_ids[chochild.attrib['id']]]
 								else:
-									print('ERROR: id ' + chochild.attrib['id'] + ' not found in ' + eventNames[-1])	
+									print('ERROR: ID "' + chochild.attrib['id'] + '" not found in ' + eventNames[-1])	
 							else:
 								events[eventNames[-1]]['choice ' + str(choiceNumber)]['text'] = [chochild.text]
 						if chochild.tag == 'event':
@@ -351,7 +389,7 @@ def errorCheck():
 		for choice in range(0, choiceNumb):
 			if events[event]['choice ' + str(choice)]['event'] != -1:
 				if events[event]['choice ' + str(choice)]['event'] not in eventNames:
-					print('ERROR: Unidentified eventList ' + events[event]['choice ' + str(choice)]['event'] + ' called by ' + event)
+					print('ERROR: Unidentified event ' + events[event]['choice ' + str(choice)]['event'] + ' called by ' + event)
 				
 
 tree = ET.parse('text_events.xml')
@@ -368,10 +406,11 @@ tree = ET.parse('events.xml')
 root = tree.getroot()
 
 if root.tag != 'FTL':
-	print('ERROR: text_events.xml not encapsulated in FTL tag. This tag is required for this parser to work.')
+	print('ERROR: events.xml not encapsulated in FTL tag. This tag is required for this parser to work.')
 	while 0 == 0:
 		input()
 
+FTLShipParse(root)
 FTLEventParse(root)
 done = False
 while done is False:
@@ -390,7 +429,7 @@ tree = ET.parse('ship.xml')
 root = tree.getroot()
 
 if root.tag != 'FTL':
-	print('ERROR: text_events.xml not encapsulated in FTL tag. This tag is required for this parser to work.')
+	print('ERROR: ship.xml not encapsulated in FTL tag. This tag is required for this parser to work.')
 	while 0 == 0:
 		input()
 
@@ -400,14 +439,16 @@ FTLEquipmentParse(root)
 command_list = '''
 !exit - leave event mode or command line.
 !god - toggles god mode, which makes blue options act like they're always obtainable (doesn't ignore max_group)
-!help - brings up list of commands.
-!list - bring up a list of loadable events.
+!help - show a list of commands.
+!list - show a list of loadable events.
 !load [EVENT_ID] - load an event to play. Must be a named event or eventlist, not a sub-event.
 !qlist - bring up a list of loaded quest events.
 !qload - load a random quest event to play.
 !rawdata - print the raw data for every event. 
 !reload - reloaded previously played event.
 !ship - show simulated ship details
+!shiplist - show a list of loadable ships
+!shipload - load a ship encounter
 '''
 
 
@@ -420,11 +461,16 @@ loadedEventCmd = -1
 quests = []
 simmedEquipment = equipment
 godMode = False
+shipMode = False
 			
 def eventEnd(quests):
 	global eventMode
+	global shipMode
 	if len(quests) == 0:
-		[print('\nEnd of Event (!reload to repeat same event)')]
+		if shipMode is True:
+			print('\nEnd of event, returning to ship encounter')
+		else:
+			print('\nEnd of event (!reload to repeat same event)')
 		eventMode = False
 	else:
 		if len(quests) == 1:	
@@ -457,8 +503,10 @@ def noChoiceReq():
 
 while 0 == 0:
 
-	if eventMode is False:
-	
+	if eventMode is False and shipMode is False:
+		
+		loadedShip = -1
+		shipEventType = -1
 	
 		command = input('>>> ')
 
@@ -524,8 +572,20 @@ while 0 == 0:
 		if command == '!ship':
 			print(equipment)
 			#To be improved
+
+		if command == '!shiplist':
+			for name in ships:
+				print(name)
+			
+		if command[:9] == '!shipload':
+			if command[10:] in ships:
+				loadedShip = command[10:]
+				shipMode = True
+				print('Ship loaded.\Ship mode on.\nUse !exit to leave ship mode.\n')
+			else:
+				print('Invalid ID')
 		
-	else:
+	elif eventMode is True:
 		
 		if 'eventList' in events[loadedEvent]:
 			loadedEvent = events[loadedEvent]['rand']
@@ -541,7 +601,7 @@ while 0 == 0:
 					
 		if 'cargoAdd' in events[loadedEvent]:
 			simmedEquipment['cargo'].append(events[loadedEvent]['cargoAdd'])
-			print('[You got a ' + events[loadedEvent]['cargoAdd'] + ']')
+			print('[You got a "' + events[loadedEvent]['cargoAdd'] + '"]')
 					
 		if 'upgrade' in events[loadedEvent]:
 			simmedEquipment['systems'][events[loadedEvent]['upgrade']['system']] += events[loadedEvent]['upgrade']['amount']
@@ -556,7 +616,7 @@ while 0 == 0:
 					
 		if 'cargoRemove' in events[loadedEvent]:
 			del simmedEquipment['cargo'][simmedEquipment['cargo'].index(events[loadedEvent]['cargoRemove'])]
-			print('[Your ' + events[loadedEvent]['cargoAdd'] + ' has been removed]')
+			print('[Your "' + events[loadedEvent]['cargoAdd'] + '" has been removed]')
 					
 		if 'reveal_map' in events[loadedEvent]:
 			print('[Your Map has been updated]')
@@ -572,7 +632,7 @@ while 0 == 0:
 			
 		if 'unlockShip' in events[loadedEvent]:
 			#placeholder
-			print('[You\'ve unlocked the ship with id ' + events[loadedEvent]['unlockShip']+']')
+			print('[You\'ve unlocked the ship with ID "' + events[loadedEvent]['unlockShip']+'"]')
 			
 		if 'environment' in events[loadedEvent]:
 			print('[This beacon has a ' + events[loadedEvent]['environment'] + ']')
@@ -634,6 +694,14 @@ while 0 == 0:
 						print('[Enemy\'s ' + system + '\'s status has been cleared.]')
 					else:
 						print('[Enemy\'s ' + system + ' has been ' + limits[events[loadedEvent]['status']['type']] + str(events[loadedEvent]['status']['amount']) + ' levels.]')
+						
+		if 'ship' in events[loadedEvent]:
+			if 'load' in events[loadedEvent]['ship']:
+				print('The ship of ID "' + events[loadedEvent]['ship']['load'] + '" is at this beacon. Hostile: ' + events[loadedEvent]['ship']['hostile'])
+				loadedShip = events[loadedEvent]['ship']['load']
+			elif loadedShip != -1:
+				print('Ship hostility change. Hostile: ' + events[loadedEvent]['ship']['hostile'])
+			
 				
 		if godMode is True:
 			simmedEquipment = equipment
@@ -751,9 +819,46 @@ while 0 == 0:
 							command = input('Enter choice number: ')
 						print('\n')
 					
-					eventEnd(quests)
+					if loadedShip == -1 or shipEventType != -1:
+						eventEnd(quests)
+					else:
+						print('Load ship based event.')
+						shipChoiceNumb = 1
+						avaliabeCommands = ['!exit']
+						for shipEvent in ships[loadedShip]:
+							print(str(shipChoiceNumb) + '. ' + shipEvent)
+							avaliabeCommands.append(str(shipChoiceNumb))
+							shipChoiceNumb += 1
+						while command not in avaliabeCommands:
+							command = input('Enter choice number: ')
+						shipEventType = list(ships[loadedShip].keys())[int(command) - 1]
+						loadedEvent = ships[loadedShip][shipEventType]['load']
+						item_modifyCalc(loadedEvent)
+						eventListCalc(loadedEvent)
+						
+					
 				else:
 					loadedEvent = events[loadedEvent]['choice ' + str(command)]['event']
 		else:
 			eventEnd(quests)
 
+
+	else:
+		print('Load ship based event.')
+		shipChoiceNumb = 1
+		avaliabeCommands = ['!exit']
+		for shipEvent in ships[loadedShip]:
+			print(str(shipChoiceNumb) + '. ' + shipEvent)
+			avaliabeCommands.append(str(shipChoiceNumb))
+			shipChoiceNumb += 1
+		while command not in avaliabeCommands:
+			command = input('Enter choice number: ')
+			
+		if command == '!exit':
+			shipMode = False
+		else:
+			shipEventType = list(ships[loadedShip].keys())[int(command) - 1]
+			loadedEvent = ships[loadedShip][shipEventType]['load']
+			item_modifyCalc(loadedEvent)
+			eventListCalc(loadedEvent)
+			eventMode = True

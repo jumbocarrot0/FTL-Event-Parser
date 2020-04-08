@@ -29,7 +29,7 @@ Do not remove the FTL Tag -->
 		<text>Loading Loading Loading</text>
 		<event load="EXAMPLE_EVENT_2"/>
 	</choice>
-	<choice req="doors" hidden="true" lvl="2">
+	<choice req="doors" hidden="true" lvl="3">
 		<text>(Doors Subsystem) This would be blue</text>
 		<event>
 			<text>Your crewmember has died!</text>
@@ -47,6 +47,105 @@ Do not remove the FTL Tag -->
 	<text>You are in an event</text>
 	<text>Event time!</text>
 </textList>
+
+<!-- auto_blueprint attribute not required for simulator, neither are the 'chance', 'min' and 'max' attributes in surrender and escape. -->
+<ship name="ENEMY" auto_blueprint="SHIPS_PIRATE">
+	<surrender  chance="0.5" min="3" max="4" load="PIRATE_SURRENDER"/>
+	<escape  chance="0.5" min="2" max="4" load="PIRATE_ESCAPE"/>
+	<destroyed load="DESTROYED_DEFAULT"/>
+	<gotaway>
+		<text>The pirate jumped away.</text>
+	</gotaway>
+	<deadCrew load="DEAD_CREW_DEFAULT"/>
+</ship>
+
+<!-- copied from FTL -->
+
+<event name="PIRATE_SURRENDER">
+	<text load="PIRATE_SURRENDER_TEXT"/>
+	<choice>
+		<text>Accept their offer.</text>
+		<event>
+			<ship hostile="false"/>
+			<autoReward level="RANDOM">stuff</autoReward>
+		</event>
+	</choice>
+	<choice>
+		<text>We will not accept surrender!</text>
+		<event/>
+	</choice>
+</event>
+<textList name="PIRATE_SURRENDER_TEXT">
+	<text>"Alright, you win! Here's some equipment from our stores, leave us alone!"</text>
+	<text>The ship repeatedly hails you. It looks like they want to surrender.</text>
+	<text>"You are considerably more well-armed than I would have thought. We surrender."</text>
+	<text>They send you a message: "Your ship is surprisingly well equipped! Please take this and let us live."</text>
+	<text>"Please don't kill us. We will give you everything we have!"</text>
+	<text>They offer you some of their cargo if you let them live.</text>
+	<text>They offer to give you some of their goods if you don't destroy their ship.</text>
+	<text>You get a frantic message, "Take everything we have! Just don't kill us."</text>
+	<text>"You have clearly bested us. We merely request our lives."</text>
+	<text>"You have made your point, we are beaten. Take these and leave us to our shame."</text>
+	<text>"Take everything we have and let's both forget this happened."</text>
+</textList>
+
+<event name="PIRATE_ESCAPE">
+	<text>The enemy ship appears to be powering up its FTL. It's trying to escape!</text>
+	<ship hostile="true"/>
+</event>
+
+<eventList name="DESTROYED_DEFAULT">
+	<event>
+		<text>The ship explodes, leaving behind a substantial collection of useful scrap material.</text>
+		<autoReward level="MED">standard</autoReward>
+	</event>
+	<event>
+		<text>The ship explodes, leaving behind a substantial collection of useful scrap material.</text>
+		<autoReward level="MED">standard</autoReward>
+	</event>
+</eventList>
+
+<eventList name="DEAD_CREW_DEFAULT">
+	<event>
+		<text>There are no more life-signs remaining on the ship. You strip it of useful materials.</text>
+		<autoReward level="MED">standard</autoReward>
+	</event>
+	<event>
+		<text>There are no more life-signs remaining on the ship. You strip it of useful materials.</text>
+		<autoReward level="MED">standard</autoReward>
+	</event>
+	<event>
+		<text>There are no more life-signs remaining on the ship. You strip it of useful materials.</text>
+		<autoReward level="MED">standard</autoReward>
+	</event>
+	<event>
+		<text>There are no more life-signs remaining on the ship. You strip it of useful materials.</text>
+		<autoReward level="MED">standard</autoReward>
+	</event>
+	<event>
+		<text>There are no more life-signs remaining on the ship. You strip it of useful materials.</text>
+		<autoReward level="MED">standard</autoReward>
+	</event>
+	<event>
+		<text>With the crew dead, you are able to take the fuel out of storage. You also take all the scrap you can manage.</text>
+		<autoReward level="HIGH">fuel</autoReward>
+	</event>
+	<event>
+		<text>With the crew dead, you are able to take the fuel out of storage. You also take all the scrap you can manage.</text>
+		<autoReward level="HIGH">fuel</autoReward>
+	</event>
+	<event>
+		<text>Now that their ship has been emptied of hostiles, you search it. Eventually you find a prisoner who offers to join your crew.</text>
+		<crewMember amount="1"/>
+		<autoReward level="LOW">scrap_only</autoReward>
+	</event>
+	<event>
+		<text>You find a weapon system on their ship. With no crew to stop you, you can install it on your own.</text>
+		<autoReward level="LOW">weapon</autoReward>
+	</event>
+</eventList>
+
+
 
 <event name="EXAMPLE_EVENT_2">
 	<text id="event_EXAMPLE_EVENT_2_text" />
@@ -112,7 +211,6 @@ Do not remove the FTL Tag -->
 <event name="BOARDER_TEST">
 	<text>Oh no enemies!</text>
 	<boarders min="3" max="5" class="human"/>
-	<ship load="PIRATE"/>
 </event>
 
 <event name="REMOVAL_TEST">
