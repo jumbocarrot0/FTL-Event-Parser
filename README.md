@@ -17,7 +17,7 @@ Features so far:
 - Simulation can interpret choice requirements
 - Has a custom-made command line with various commands
 - Can return basic error messages
-- The ability to load ship encounters and their vartious events (surrenders, dead crew, etc.)
+- The ability to load ship encounters and their various events (surrenders, dead crew, etc.)
 
 Essentially it can handle the bulk of an event's structure, choices, randomisation, etc.
 
