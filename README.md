@@ -17,12 +17,12 @@ Features so far:
 - Simulation can interpret choice requirements
 - Has a custom-made command line with various commands
 - Can return basic error messages
+- The ability to load ship encounters and their vartious events (surrenders, dead crew, etc.)
 
 Essentially it can handle the bulk of an event's structure, choices, randomisation, etc.
 
 
 Features to implement:
-- Ship events (surrenders, dead crew, etc.)
 - AutoReward tag (once I figure out how it works *precisely*)
 - Damage tag (kinda just forgot about it)
 - Make things nicer (such as not making a person race 'random'. This is hard without reading a big blueprints.xml file)
