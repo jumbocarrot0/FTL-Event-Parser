@@ -281,10 +281,13 @@ def FTLEventParse(data):
 							print('ERROR: unrecognised "type" attribute in <status> tag in event ' + eventNames[-1])
 							workCheck = False
 						else:
-							events[eventNames[-1]]['status'] = {}
+							if 'status' not in events[eventNames[-1]]:
+								events[eventNames[-1]]['status'] = [{}]
+							else:
+								events[eventNames[-1]]['status'].append({})
 							for attribute in ['type', 'target', 'system', 'amount']:
-								events[eventNames[-1]]['status'][attribute] = echild.attrib[attribute]
-							events[eventNames[-1]]['status']['amount'] = int(events[eventNames[-1]]['status']['amount'])
+								events[eventNames[-1]]['status'][-1][attribute] = echild.attrib[attribute]
+							events[eventNames[-1]]['status'][-1]['amount'] = int(events[eventNames[-1]]['status'][-1]['amount'])
 						
 				if echild.tag == 'upgrade':
 					for attribute in ['system', 'amount']:
@@ -681,19 +684,18 @@ while 0 == 0:
 				
 		if 'status' in events[loadedEvent]:
 			limits = {'limit' : 'limited to ', 'divide' : 'divided by ', 'loss' : 'decreased by ', 'clear' : 'cleared '}
-			if events[loadedEvent]['status']['target'] == 'player':
-				for system in events[loadedEvent]['status']['system']:
-					if events[loadedEvent]['status']['type'] == 'clear':
-						print('[Your ' + system + '\'s status has been cleared.]')
+			for effect in events[loadedEvent]['status']:
+				if effect['target'] == 'player':
+					if effect['type'] == 'clear':
+						print('[Your ' + effect['system'] + '\'s status has been cleared.]')
 					else:
-						print('[Your ' + system + ' has been ' + limits[events[loadedEvent]['status']['type']] + str(events[loadedEvent]['status']['amount']) + ' levels.]')
+						print('[Your ' + effect['system'] + ' has been ' + limits[effect['type']] + str(effect['amount']) + ' level(s)]')
 			
-			else:
-				for system in events[loadedEvent]['status']['system']:
-					if events[loadedEvent]['status']['type'] == 'clear':
-						print('[Enemy\'s ' + system + '\'s status has been cleared.]')
+				else:
+					if effect['type'] == 'clear':
+						print('[Enemy\'s ' + effect['system'] + '\'s status has been cleared.]')
 					else:
-						print('[Enemy\'s ' + system + ' has been ' + limits[events[loadedEvent]['status']['type']] + str(events[loadedEvent]['status']['amount']) + ' levels.]')
+						print('[Enemy\'s ' + effect['system'] + ' has been ' + limits[effect['type']] + str(effect['amount']) + ' level(s)]')
 						
 		if 'ship' in events[loadedEvent]:
 			if 'load' in events[loadedEvent]['ship']:
