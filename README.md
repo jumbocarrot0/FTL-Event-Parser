@@ -24,7 +24,6 @@ Essentially it can handle the bulk of an event's structure, choices, randomisati
 
 Features to implement:
 - AutoReward tag (once I figure out how it works *precisely*)
-- Damage tag (kinda just forgot about it)
 - Make things nicer (such as not making a person race 'random'. This is hard without reading a big blueprints.xml file)
 - More expansive error checker
 - A GUI (maybe)

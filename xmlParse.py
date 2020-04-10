@@ -288,6 +288,31 @@ def FTLEventParse(data):
 							for attribute in ['type', 'target', 'system', 'amount']:
 								events[eventNames[-1]]['status'][-1][attribute] = echild.attrib[attribute]
 							events[eventNames[-1]]['status'][-1]['amount'] = int(events[eventNames[-1]]['status'][-1]['amount'])
+
+				if echild.tag == 'damage':
+					if 'amount' not in echild.attrib:
+						print('ERROR: amount attribute not in <damage> tag in event ' + eventNames[-1])
+						break
+							
+					else:
+						workCheck = True
+						if 'effect' in echild.attrib:
+							if echild.attrib['effect'] not in ['fire', 'breach', 'random', 'all', 'none']:
+								print('ERROR: unrecognised "type" attribute in <damage> tag in event ' + eventNames[-1])
+								workCheck = False
+								
+						if workCheck is True:
+							if 'damage' not in events[eventNames[-1]]:
+								events[eventNames[-1]]['damage'] = [{}]
+							else:
+								events[eventNames[-1]]['damage'].append({})
+							for attribute in ['effect', 'system', 'amount', 'target']:
+								if attribute in echild.attrib:
+									events[eventNames[-1]]['damage'][-1][attribute] = echild.attrib[attribute]
+							if 'target' not in events[eventNames[-1]]['damage'][-1]:
+								events[eventNames[-1]]['damage'][-1]['target'] = 'player'
+							if 'system' not in events[eventNames[-1]]['damage'][-1]:
+								events[eventNames[-1]]['damage'][-1]['system'] = 'hull'
 						
 				if echild.tag == 'upgrade':
 					for attribute in ['system', 'amount']:
@@ -696,6 +721,14 @@ while 0 == 0:
 						print('[Enemy\'s ' + effect['system'] + '\'s status has been cleared.]')
 					else:
 						print('[Enemy\'s ' + effect['system'] + ' has been ' + limits[effect['type']] + str(effect['amount']) + ' level(s)]')
+				
+		if 'damage' in events[loadedEvent]:
+			for effect in events[loadedEvent]['damage']:
+				if effect['target'] == 'player':
+					print('[Your ' + effect['system'] + ' has been dealt ' + effect['amount'] + ' damage]')
+			
+				else:
+					print('[Enemy\'s ' + effect['system'] + ' has been dealt ' + effect['amount'] + ' damage]')
 						
 		if 'ship' in events[loadedEvent]:
 			if 'load' in events[loadedEvent]['ship']:
