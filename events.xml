@@ -243,7 +243,7 @@ Do not remove the FTL Tag -->
 	<text>Limited systems!</text>
 	<status type="limit" target="player" system="sensors" amount="1"/>
 	<status type="limit" target="player" system="doors" amount="1"/>
-	<status type="limit" target="player" system="engine" amount="1"/>
+	<status type="limit" target="player" system="engines" amount="1"/>
 	<status type="limit" target="player" system="weapons" amount="1"/>
 </event>
 

@@ -5,3 +5,4 @@ __pycache__/test.cpython-37.pyc
 test.py
 events2.xml
 output.xml
+*.pyc
